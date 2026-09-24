@@ -2,11 +2,14 @@ import { describe, expect, it } from 'vitest';
 import {
   calculateResizeDimensions,
   filterSectionsBySeverity,
+  formatNextDive,
+  joinStatusMessage,
   relativeDate,
+  selectNextDive,
   validateDisplayName,
   validateThreadInput
 } from './logic';
-import type { EquipmentSection } from '../types';
+import type { EquipmentSection, NewsItem } from '../types';
 
 const section: EquipmentSection = {
   no: 1,
@@ -46,5 +49,55 @@ describe('相対日時', () => {
     const now = new Date('2026-09-24T12:00:00Z');
     expect(relativeDate('2026-09-24T11:45:00Z', now)).toBe('15分前');
     expect(relativeDate('2026-09-23T12:00:00Z', now)).toBe('1日前');
+  });
+});
+
+describe('次回ダイブ', () => {
+  const news: NewsItem[] = [
+    {
+      id: 'past',
+      title: '',
+      body: '',
+      next_dive_at: '2026-10-01T00:00:00Z',
+      next_dive_place: null,
+      pinned: false,
+      published_at: null
+    },
+    {
+      id: 'later',
+      title: '',
+      body: '',
+      next_dive_at: '2026-10-20T00:00:00Z',
+      next_dive_place: null,
+      pinned: false,
+      published_at: null
+    },
+    {
+      id: 'soon',
+      title: '',
+      body: '',
+      next_dive_at: '2026-10-12T00:00:00Z',
+      next_dive_place: '伊豆',
+      pinned: false,
+      published_at: null
+    }
+  ];
+
+  it('未来の予定から最も早いものを選ぶ', () => {
+    expect(selectNextDive(news, new Date('2026-10-10T00:00:00Z'))?.id).toBe('soon');
+    expect(selectNextDive(news, new Date('2026-10-21T00:00:00Z'))).toBeNull();
+  });
+
+  it('指定形式で日時を表示する', () => {
+    expect(formatNextDive('2026-10-11T00:00:00Z')).toBe('10/11(日) 9:00');
+  });
+});
+
+describe('合言葉の結果表示', () => {
+  it('RPC の状態を日本語メッセージに変換する', () => {
+    expect(joinStatusMessage('ok')).toBeNull();
+    expect(joinStatusMessage('wrong')).toBe('合言葉が違います。');
+    expect(joinStatusMessage('locked')).toContain('10分後');
+    expect(joinStatusMessage('not_set')).toContain('設定');
   });
 });

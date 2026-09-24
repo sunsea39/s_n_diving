@@ -84,6 +84,10 @@ create table public.posts (
   updated_at timestamptz not null default now()
 );
 
+insert into public.settings (id, passcode_hash, passcode_version, disclaimer)
+values (1, null, 1, '')
+on conflict (id) do nothing;
+
 create index threads_last_post_at_idx on public.threads (last_post_at desc);
 create index posts_thread_id_created_at_idx on public.posts (thread_id, created_at);
 create index join_attempts_user_created_at_idx on public.join_attempts (user_id, created_at desc);
@@ -104,34 +108,42 @@ returns boolean language sql stable security definer set search_path = public, p
 $$;
 
 create or replace function public.join_board(p_passcode text)
-returns void language plpgsql security definer set search_path = public, pg_temp as $$
+returns text language plpgsql security definer set search_path = public, pg_temp as $$
 declare
   current_uid uuid := auth.uid();
   current_hash text;
   current_version integer;
-  failed_count integer;
+  user_failed_count integer;
+  global_failed_count integer;
 begin
   if current_uid is null then
     raise exception 'セッションを確認できません。もう一度お試しください。';
   end if;
+  perform pg_advisory_xact_lock(hashtextextended('join_board_global', 0));
   perform pg_advisory_xact_lock(hashtextextended(current_uid::text, 0));
-  select count(*) into failed_count from public.join_attempts
+
+  select count(*) into user_failed_count from public.join_attempts
     where user_id = current_uid and success = false and created_at > now() - interval '10 minutes';
-  if failed_count >= 5 then
-    raise exception '試行回数が上限に達しました。10分後にもう一度お試しください。';
+  select count(*) into global_failed_count from public.join_attempts
+    where success = false and created_at > now() - interval '10 minutes';
+  if user_failed_count >= 5 or global_failed_count >= 30 then
+    return 'locked';
   end if;
+
   select passcode_hash, passcode_version into current_hash, current_version from public.settings where id = 1 for update;
   if current_hash is null then
-    raise exception '現在、合言葉は設定されていません。';
+    return 'not_set';
   end if;
   if p_passcode is null or crypt(p_passcode, current_hash) <> current_hash then
     insert into public.join_attempts(user_id, success) values (current_uid, false);
-    raise exception '合言葉が違います。';
+    return 'wrong';
   end if;
+
   insert into public.join_attempts(user_id, success) values (current_uid, true);
   insert into public.board_members(user_id, display_name, passcode_version)
     values (current_uid, left(coalesce(nullif(trim(auth.jwt() -> 'user_metadata' ->> 'display_name'), ''), '仲間'), 20), current_version)
   on conflict (user_id) do update set passcode_version = excluded.passcode_version, joined_at = now();
+  return 'ok';
 end;
 $$;
 
@@ -139,8 +151,9 @@ create or replace function public.set_passcode(p_passcode text)
 returns void language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   if not public.is_admin() then raise exception '管理者権限が必要です。'; end if;
-  if p_passcode is null or char_length(trim(p_passcode)) = 0 then raise exception '合言葉を入力してください。'; end if;
+  if p_passcode is null or char_length(p_passcode) < 8 then raise exception '合言葉は8文字以上で入力してください。'; end if;
   update public.settings set passcode_hash = crypt(p_passcode, gen_salt('bf')), passcode_version = passcode_version + 1 where id = 1;
+  if not found then raise exception '設定の初期化に失敗しました。'; end if;
 end;
 $$;
 
@@ -206,28 +219,36 @@ alter table public.posts enable row level security;
 create policy "admins read themselves only through admin check" on public.admins for select to authenticated using (public.is_admin());
 create policy "docs public published read" on public.docs for select to anon, authenticated using (status = 'published' or public.is_admin());
 create policy "docs admin write" on public.docs for all to authenticated using (public.is_admin()) with check (public.is_admin());
-create policy "news public read" on public.news for select to anon, authenticated using (true);
+create policy "news published read" on public.news for select to anon, authenticated using (published_at is not null and published_at <= now() or public.is_admin());
 create policy "news admin write" on public.news for all to authenticated using (public.is_admin()) with check (public.is_admin());
 create policy "threads board read" on public.threads for select to authenticated using (public.is_board_member() and (not hidden or public.is_admin()));
 create policy "threads board insert" on public.threads for insert to authenticated with check (public.is_board_member() and author_uid = (select auth.uid()));
-create policy "threads owner or admin update" on public.threads for update to authenticated using (author_uid = (select auth.uid()) or public.is_admin()) with check ((author_uid = (select auth.uid()) and hidden = false) or public.is_admin());
-create policy "threads owner or admin delete" on public.threads for delete to authenticated using (author_uid = (select auth.uid()) or public.is_admin());
+create policy "threads owner or admin update" on public.threads for update to authenticated using (public.is_admin() or (public.is_board_member() and author_uid = (select auth.uid()))) with check (public.is_admin() or (public.is_board_member() and author_uid = (select auth.uid()) and hidden = false));
+create policy "threads owner or admin delete" on public.threads for delete to authenticated using (public.is_admin() or (public.is_board_member() and author_uid = (select auth.uid())));
 create policy "posts board read" on public.posts for select to authenticated using (public.is_board_member() and (not hidden or public.is_admin()));
 create policy "posts board insert" on public.posts for insert to authenticated with check (public.is_board_member() and author_uid = (select auth.uid()));
-create policy "posts owner or admin update" on public.posts for update to authenticated using (author_uid = (select auth.uid()) or public.is_admin()) with check ((author_uid = (select auth.uid()) and hidden = false) or public.is_admin());
-create policy "posts owner or admin delete" on public.posts for delete to authenticated using (author_uid = (select auth.uid()) or public.is_admin());
+create policy "posts owner or admin update" on public.posts for update to authenticated using (public.is_admin() or (public.is_board_member() and author_uid = (select auth.uid()))) with check (public.is_admin() or (public.is_board_member() and author_uid = (select auth.uid()) and hidden = false));
+create policy "posts owner or admin delete" on public.posts for delete to authenticated using (public.is_admin() or (public.is_board_member() and author_uid = (select auth.uid())));
 
 -- This view deliberately projects only the public disclaimer; passcode_hash is never exposed to clients.
 create view public.public_settings with (security_invoker = false) as select disclaimer from public.settings where id = 1;
 
 revoke all on public.settings, public.board_members, public.join_attempts from anon, authenticated;
+revoke update on public.threads, public.posts from authenticated;
 grant usage on schema public to anon, authenticated;
 grant select on public.docs, public.news, public.public_settings to anon, authenticated;
-grant insert, update, delete on public.docs, public.news, public.threads, public.posts to authenticated;
+grant insert, delete on public.docs, public.news, public.threads, public.posts to authenticated;
+grant update on public.docs, public.news to authenticated;
+grant update (title, body, hiyari, hidden) on public.threads to authenticated;
+grant update (body, hidden) on public.posts to authenticated;
 grant select on public.threads, public.posts, public.admins to authenticated;
+revoke execute on function public.is_admin(), public.is_board_member(), public.join_board(text), public.set_passcode(text), public.set_disclaimer(text) from public;
+grant execute on function public.is_admin() to anon, authenticated;
 grant execute on function public.is_admin(), public.is_board_member(), public.join_board(text), public.set_passcode(text), public.set_disclaimer(text) to authenticated;
 
-insert into storage.buckets(id, name, public) values ('board-images', 'board-images', false) on conflict (id) do update set public = false;
+insert into storage.buckets(id, name, public, file_size_limit, allowed_mime_types)
+values ('board-images', 'board-images', false, 3145728, array['image/jpeg']::text[])
+on conflict (id) do update set public = false, file_size_limit = 3145728, allowed_mime_types = array['image/jpeg']::text[];
 create policy "board images read" on storage.objects for select to authenticated using (bucket_id = 'board-images' and public.is_board_member());
 create policy "board images upload own" on storage.objects for insert to authenticated with check (bucket_id = 'board-images' and public.is_board_member() and split_part(name, '/', 1) = (select auth.uid())::text and lower(right(name, 4)) = '.jpg');
 create policy "board images update own or admin" on storage.objects for update to authenticated using (bucket_id = 'board-images' and (owner_id = (select auth.uid()) or public.is_admin())) with check (bucket_id = 'board-images' and (owner_id = (select auth.uid()) or public.is_admin()));

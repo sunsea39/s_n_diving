@@ -1,24 +1,10 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import seedDocument from '../../supabase/seed/gear-signs.json';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import type { DivingDoc, NewsItem } from '../types';
+import { AppDataContext } from './AppDataContext';
 
-interface AppDataValue {
-  configured: boolean;
-  loading: boolean;
-  docs: DivingDoc[];
-  news: NewsItem[];
-  disclaimer: string;
-  user: User | null;
-  isBoardMember: boolean;
-  isAdmin: boolean;
-  authChecked: boolean;
-  refreshPublic: () => Promise<void>;
-  refreshSession: () => Promise<void>;
-}
-
-const AppDataContext = createContext<AppDataValue | null>(null);
 const fallbackDocs = [seedDocument as DivingDoc];
 
 export function AppDataProvider({ children }: { children: React.ReactNode }) {
@@ -39,12 +25,18 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
       return;
     }
+
     setLoading(true);
     const [docResult, newsResult, settingsResult] = await Promise.all([
       supabase.from('docs').select('*').eq('status', 'published').order('sort_order'),
-      supabase.from('news').select('*').order('pinned', { ascending: false }).order('published_at', { ascending: false }),
+      supabase
+        .from('news')
+        .select('*')
+        .order('pinned', { ascending: false })
+        .order('published_at', { ascending: false }),
       supabase.from('public_settings').select('disclaimer').single()
     ]);
+
     if (!docResult.error) setDocs(docResult.data as DivingDoc[]);
     if (!newsResult.error) setNews(newsResult.data as NewsItem[]);
     if (!settingsResult.error) setDisclaimer(settingsResult.data?.disclaimer ?? '');
@@ -53,16 +45,22 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
 
   const refreshSession = useCallback(async () => {
     if (!supabase) return;
+
     const { data } = await supabase.auth.getSession();
     const currentUser = data.session?.user ?? null;
     setUser(currentUser);
+
     if (!currentUser) {
       setIsBoardMember(false);
       setIsAdmin(false);
       setAuthChecked(true);
       return;
     }
-    const [membership, admin] = await Promise.all([supabase.rpc('is_board_member'), supabase.rpc('is_admin')]);
+
+    const [membership, admin] = await Promise.all([
+      supabase.rpc('is_board_member'),
+      supabase.rpc('is_admin')
+    ]);
     setIsBoardMember(Boolean(membership.data) && !membership.error);
     setIsAdmin(Boolean(admin.data) && !admin.error);
     setAuthChecked(true);
@@ -71,6 +69,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     void refreshPublic();
     void refreshSession();
+
     if (!supabase) return undefined;
     const { data } = supabase.auth.onAuthStateChange(() => void refreshSession());
     return () => data.subscription.unsubscribe();
@@ -90,14 +89,19 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       refreshPublic,
       refreshSession
     }),
-    [authChecked, disclaimer, docs, isAdmin, isBoardMember, loading, news, refreshPublic, refreshSession, user]
+    [
+      authChecked,
+      disclaimer,
+      docs,
+      isAdmin,
+      isBoardMember,
+      loading,
+      news,
+      refreshPublic,
+      refreshSession,
+      user
+    ]
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
-}
-
-export function useAppData() {
-  const value = useContext(AppDataContext);
-  if (!value) throw new Error('AppDataProvider の外側では利用できません。');
-  return value;
 }

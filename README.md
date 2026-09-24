@@ -12,6 +12,8 @@
 6. ローカル開発では `.env.example` を参考に `.env` を作成し、`npm install`、`npm run dev` を実行します。
 7. デプロイ後、仲間に `https://<専用GitHubアカウント>.github.io/s_n_diving/` を送ります。URL は仲間内だけで扱ってください。
 
+合言葉は **8文字以上** を推奨します。匿名サインインの作成頻度も抑えたい場合は、Supabase Dashboard の **Authentication → Rate Limits** で匿名サインインのレート制限を厳しくしてください。
+
 ## 開発コマンド
 
 ```sh
@@ -28,3 +30,4 @@ npm run build
 - 匿名サインインも Postgres では `authenticated` ロールです。管理者権限は必ず `public.is_admin()` の結果で判定します。
 - `settings.passcode_hash` に直接 SELECT を許可していません。クライアントに返すのは公開用の注意書きだけです。
 - 掲示板画像は非公開 Storage バケットに保存し、表示時に signed URL を使います。
+- `join_board` RPC は `ok`（参加成功）、`wrong`（合言葉違い）、`locked`（試行回数上限）、`not_set`（合言葉未設定）を返します。`wrong` の記録はトランザクション内で確定するため、10分間の個人・全体ロックアウトが有効です。
