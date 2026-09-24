@@ -1,0 +1,11 @@
+{
+  "name": "S×N_Diving",
+  "short_name": "S×N_Diving",
+  "start_url": "/s_n_diving/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#0B3C5D",
+  "icons": [
+    { "src": "/s_n_diving/img/mask.png", "sizes": "800x800", "type": "image/png" }
+  ]
+}
