@@ -1,5 +1,14 @@
 # N×S_Diving 実装仕様 v2.1
 
+## v2.2
+
+- Page headers use `page_texts`, with code defaults to avoid a first-render flash.
+- Document anchors are deterministic (`sec-` plus a stable hash), shared by the TOC and bookmarks.
+- `Avatar` is the sole renderer: uploaded image, validated diver illustration, then initials.
+- Dive-log aggregates (`profiles.logged_dives` / `last_dived_on`) are database-maintained; clients cannot update them or `profiles.role`.
+- Filter controls use `.chip` and `aria-pressed`, with explicit selected colors for both themes.
+- Apply `20260928000000_v2_2.sql` after v2.0.1. It is additive and safe to run again.
+
 ## 1. 概要
 
 - 表示名: **N×S_Diving**。URL、リポジトリ名、localStorage キー、Supabase オブジェクト名は s_n_diving のまま。

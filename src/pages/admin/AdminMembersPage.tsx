@@ -82,7 +82,8 @@ export function AdminMembersPage() {
         {filters.map(([value, label]) => (
           <button
             key={value}
-            className={filter === value ? 'selected' : ''}
+            className="chip"
+            aria-pressed={filter === value}
             onClick={() => setFilter(value)}
           >
             {label}

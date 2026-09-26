@@ -520,6 +520,8 @@ function BlockForm({
 export function AdminDocsListPage() {
   usePageTitle('資料管理');
   const [docs, setDocs] = useState<DivingDoc[]>([]);
+  const [reordering, setReordering] = useState(false);
+  const [beforeOrder, setBeforeOrder] = useState<DivingDoc[]>([]);
   useEffect(() => {
     void requireSupabase()
       .from('docs')
@@ -527,6 +529,17 @@ export function AdminDocsListPage() {
       .order('sort_order')
       .then(({ data }) => setDocs((data ?? []) as DivingDoc[]));
   }, []);
+  const move = (index: number, direction: -1 | 1) =>
+    setDocs((items) => reorder(items, index, direction));
+  const saveOrder = async () => {
+    const result = await requireSupabase().rpc('reorder_docs', {
+      p_ids: docs.map((doc) => doc.id)
+    });
+    if (!result.error) {
+      setReordering(false);
+      setBeforeOrder([]);
+    }
+  };
   return (
     <>
       <div className="section-heading">
@@ -537,17 +550,72 @@ export function AdminDocsListPage() {
         <Link className="button" to="/admin/docs/new">
           資料を作成
         </Link>
+        <button
+          className="button-secondary"
+          onClick={() => {
+            setBeforeOrder(docs);
+            setReordering(!reordering);
+          }}
+        >
+          {reordering ? '編集に戻る' : '並び替え'}
+        </button>
       </div>
+      {reordering && (
+        <div className="button-row">
+          <button className="button" onClick={() => void saveOrder()}>
+            並び順を保存
+          </button>
+          <button
+            className="button-secondary"
+            onClick={() => {
+              setDocs(beforeOrder);
+              setReordering(false);
+            }}
+          >
+            元に戻す
+          </button>
+        </div>
+      )}
       <div className="admin-list">
-        {docs.map((doc) => (
-          <Link className="panel news-row" key={doc.id} to={'/admin/docs/' + doc.id}>
-            <span className="meta">
-              {doc.status === 'published' ? '公開中' : '下書き'} ・ 並び順 {doc.sort_order}
-            </span>
-            <b>{doc.title}</b>
-            <span>{doc.slug}</span>
-          </Link>
-        ))}
+        {docs.map((doc, index) =>
+          reordering ? (
+            <article
+              className="panel news-row reorder-row"
+              key={doc.id}
+              draggable
+              onDragStart={(event) => event.dataTransfer.setData('text/plain', String(index))}
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={(event) => {
+                const from = Number(event.dataTransfer.getData('text/plain'));
+                if (Number.isFinite(from)) {
+                  const next = [...docs];
+                  const [picked] = next.splice(from, 1);
+                  next.splice(index, 0, picked);
+                  setDocs(next);
+                }
+              }}
+            >
+              <span className="drag-handle" aria-label="ドラッグして並び替え">
+                ⠿
+              </span>
+              <b>{doc.title}</b>
+              <button onClick={() => move(index, -1)} disabled={index === 0}>
+                ↑
+              </button>
+              <button onClick={() => move(index, 1)} disabled={index === docs.length - 1}>
+                ↓
+              </button>
+            </article>
+          ) : (
+            <Link className="panel news-row" key={doc.id} to={'/admin/docs/' + doc.id}>
+              <span className="meta">
+                {doc.status === 'published' ? '公開中' : '下書き'} ・ 並び順 {doc.sort_order}
+              </span>
+              <b>{doc.title}</b>
+              <span>{doc.slug}</span>
+            </Link>
+          )
+        )}
       </div>
     </>
   );

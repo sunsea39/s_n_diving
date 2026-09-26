@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAppData } from '../context/AppDataContext';
 import { ThemePicker } from '../components/ThemeControls';
 import { usePageTitle } from '../lib/pageTitle';
+import { PageHeading } from '../components/PageHeading';
 
 export function MorePage() {
   usePageTitle('その他');
@@ -9,11 +10,7 @@ export function MorePage() {
 
   return (
     <>
-      <p className="kicker">その他</p>
-      <h1>このサイトについて</h1>
-      <p className="lead">
-        ダイビング情報の共有サイト。仲間どうしで知識や経験を共有し、より理解を深めて、安全に楽しく潜れるようにしたい。
-      </p>
+      <PageHeading page="more" />
       <div className="panel form-panel">
         <ThemePicker className="more-theme-picker" />
         <div className="button-row">

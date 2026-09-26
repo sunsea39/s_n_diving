@@ -1,5 +1,9 @@
 # N×S_Diving
 
+## v2.2 migration
+
+Apply `supabase/migrations/20260928000000_v2_2.sql` after the existing four migrations, using the Supabase SQL Editor (or the project migration workflow). It is additive and re-runnable. It creates page copy, bookmarks, dive logs and profile aggregate fields, and upgrades news to category-based dive schedules. Refresh the browser session after applying it so column privileges are reloaded.
+
 ダイビング情報の共有サイトです。仲間どうしで知識や経験を共有し、より理解を深めて、安全に楽しく潜れるようにするスマホ最優先の Web アプリです。公開 URL は `https://<専用GitHubアカウント>.github.io/s_n_diving/` を想定しています。
 
 表示テーマはライト（既定）・ダーク・端末に合わせるから選べ、設定はこのブラウザに保存されます。

@@ -20,6 +20,10 @@ import {
   avatarCropDimensions,
   safeNext,
   serviceBadge,
+  serviceMonthsSince,
+  bookmarkAnchor,
+  reorderSortOrders,
+  totalDiveCount,
   adminMenuForRole
 } from './logic';
 import type { Accident, DivingDoc, EquipmentSection, NewsItem } from '../types';
@@ -82,9 +86,11 @@ describe('個人アカウント', () => {
   });
   it('点検期限のバッジを判定する', () => {
     const today = new Date('2026-09-26T12:00:00');
-    expect(serviceBadge('2026-09-25', today)).toBe('overdue');
-    expect(serviceBadge('2026-10-26', today)).toBe('soon');
-    expect(serviceBadge('2026-11-01', today)).toBeNull();
+    expect(serviceBadge('2025-09-26', today)).toBe('good');
+    expect(serviceBadge('2025-03-26', today)).toBe('soon');
+    expect(serviceBadge('2025-03-25', today)).toBe('overdue');
+    expect(serviceBadge(null, today)).toBe('none');
+    expect(serviceMonthsSince('2026-09-20', today)).toBe(0);
   });
   it('頭文字アイコンの色は名前ごとに安定する', () => {
     expect(avatarColor('海子')).toBe(avatarColor('海子'));
@@ -104,6 +110,11 @@ describe('次回ダイブ', () => {
   const news: NewsItem[] = [
     {
       id: 'past',
+      category: 'dive',
+      dive_start: '2026-10-01',
+      dive_end: null,
+      staff: '',
+      place: '',
       title: '',
       body: '',
       next_dive_at: '2026-10-01T00:00:00Z',
@@ -113,6 +124,11 @@ describe('次回ダイブ', () => {
     },
     {
       id: 'later',
+      category: 'dive',
+      dive_start: '2026-10-20',
+      dive_end: null,
+      staff: '',
+      place: '',
       title: '',
       body: '',
       next_dive_at: '2026-10-20T00:00:00Z',
@@ -122,6 +138,11 @@ describe('次回ダイブ', () => {
     },
     {
       id: 'soon',
+      category: 'dive',
+      dive_start: '2026-10-12',
+      dive_end: '2026-10-13',
+      staff: '',
+      place: '',
       title: '',
       body: '',
       next_dive_at: '2026-10-12T00:00:00Z',
@@ -137,8 +158,19 @@ describe('次回ダイブ', () => {
   });
 
   it('指定形式で日時を表示する', () => {
-    expect(formatNextDive('2026-10-11T00:00:00Z')).toBe('10/11(日) 9:00');
+    expect(formatNextDive('2026-10-11T00:00:00Z')).toBe('10/11(日)');
   });
+});
+
+describe('v2.2 pure helpers', () => {
+  it('creates deterministic bookmark anchors and order values', () => {
+    expect(bookmarkAnchor('安全の基本')).toBe(bookmarkAnchor('安全の基本'));
+    expect(reorderSortOrders(['a', 'b'])).toEqual([
+      { id: 'a', sort_order: 10 },
+      { id: 'b', sort_order: 20 }
+    ]);
+  });
+  it('adds initial and logged dive counts', () => expect(totalDiveCount(12, 3)).toBe(15));
 });
 
 describe('合言葉の結果表示', () => {

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import seedDocument from '../../supabase/seed/gear-signs.json';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
-import type { Accident, AccountRole, DivingDoc, NewsItem, Profile } from '../types';
+import type { Accident, AccountRole, DivingDoc, NewsItem, PageText, Profile } from '../types';
 import { AppDataContext } from './AppDataContext';
 
 const fallbackDocs = [seedDocument as DivingDoc];
@@ -12,6 +12,9 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [accidents, setAccidents] = useState<Accident[]>([]);
   const [disclaimer, setDisclaimer] = useState('');
+  const [pageTexts, setPageTexts] = useState<
+    Partial<Record<PageText['key'], Omit<PageText, 'key'>>>
+  >({});
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -28,12 +31,13 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       setNews([]);
       setAccidents([]);
       setDisclaimer('');
+      setPageTexts({});
       setLoading(false);
       return;
     }
 
     setLoading(true);
-    const [docResult, newsResult, settingsResult, accidentResult] = await Promise.all([
+    const [docResult, newsResult, settingsResult, accidentResult, textResult] = await Promise.all([
       supabase.from('docs').select('*').eq('status', 'published').order('sort_order'),
       supabase
         .from('news')
@@ -45,13 +49,18 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         .from('accidents')
         .select('*')
         .eq('status', 'published')
-        .order('occurred_on', { ascending: false })
+        .order('occurred_on', { ascending: false }),
+      supabase.from('page_texts').select('key,kicker,title,lead')
     ]);
 
     if (!docResult.error) setDocs(docResult.data as DivingDoc[]);
     if (!newsResult.error) setNews(newsResult.data as NewsItem[]);
     if (!settingsResult.error) setDisclaimer(settingsResult.data?.disclaimer ?? '');
     if (!accidentResult.error) setAccidents(accidentResult.data as Accident[]);
+    if (!textResult.error)
+      setPageTexts(
+        Object.fromEntries((textResult.data as PageText[]).map(({ key, ...text }) => [key, text]))
+      );
     setLoading(false);
   }, []);
 
@@ -107,6 +116,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       news,
       accidents,
       disclaimer,
+      pageTexts,
       user,
       profile,
       role,
@@ -129,6 +139,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       loading,
       news,
       profile,
+      pageTexts,
       accidents,
       refreshPublic,
       refreshSession,

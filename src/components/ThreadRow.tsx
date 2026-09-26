@@ -15,6 +15,7 @@ export function ThreadRow({ thread }: { thread: Thread }) {
           id={thread.profile?.id}
           name={thread.profile?.display_name ?? thread.author_name}
           path={thread.profile?.avatar_path}
+          style={thread.profile?.avatar_style}
           small
         />
         {thread.profile?.display_name ?? thread.author_name} ・ {relativeDate(thread.last_post_at)}{' '}

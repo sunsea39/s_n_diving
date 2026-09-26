@@ -9,8 +9,11 @@ interface NewsDraft {
   id?: string;
   title: string;
   body: string;
-  next_dive_at: string;
-  next_dive_place: string;
+  category: 'dive' | 'other';
+  staff: string;
+  dive_start: string;
+  dive_end: string;
+  place: string;
   pinned: boolean;
   published_at: string;
 }
@@ -18,8 +21,11 @@ interface NewsDraft {
 const blankNews = (): NewsDraft => ({
   title: '',
   body: '',
-  next_dive_at: '',
-  next_dive_place: '',
+  category: 'other',
+  staff: '',
+  dive_start: '',
+  dive_end: '',
+  place: '',
   pinned: false,
   published_at: new Date().toISOString().slice(0, 16)
 });
@@ -53,6 +59,7 @@ export function AdminNewsListPage() {
           <Link className="panel news-row" key={item.id} to={`/admin/news/${item.id}`}>
             <span className="meta">
               {item.pinned && '固定 ・ '}
+              {item.category === 'dive' ? 'ダイビング ・ ' : 'その他 ・ '}
               {item.published_at
                 ? new Date(item.published_at).toLocaleString('ja-JP')
                 : '公開日時なし'}
@@ -91,8 +98,11 @@ export function AdminNewsEditorPage() {
           id: loaded.id,
           title: loaded.title,
           body: loaded.body,
-          next_dive_at: loaded.next_dive_at ? loaded.next_dive_at.slice(0, 16) : '',
-          next_dive_place: loaded.next_dive_place ?? '',
+          category: loaded.category ?? 'other',
+          staff: loaded.staff ?? '',
+          dive_start: loaded.dive_start ?? '',
+          dive_end: loaded.dive_end ?? '',
+          place: loaded.place ?? '',
           pinned: loaded.pinned,
           published_at: loaded.published_at ? loaded.published_at.slice(0, 16) : ''
         });
@@ -107,12 +117,29 @@ export function AdminNewsEditorPage() {
     if (!item.title.trim() || !item.body.trim())
       return setError('タイトルと本文を入力してください。');
 
-    const { id: itemId, next_dive_at, next_dive_place, published_at, ...rest } = item;
+    const {
+      id: itemId,
+      dive_start,
+      dive_end,
+      place,
+      staff,
+      category,
+      published_at,
+      ...rest
+    } = item;
     const payload = {
       ...rest,
-      next_dive_at: next_dive_at ? new Date(next_dive_at).toISOString() : null,
-      next_dive_place: next_dive_place.trim() || null,
-      published_at: published_at ? new Date(published_at).toISOString() : null
+      category,
+      staff: category === 'dive' ? staff.trim() : '',
+      dive_start: category === 'dive' ? dive_start || null : null,
+      dive_end: category === 'dive' ? dive_end || null : null,
+      place: category === 'dive' ? place.trim() : '',
+      published_at:
+        category === 'other'
+          ? new Date().toISOString()
+          : published_at
+            ? new Date(published_at).toISOString()
+            : null
     };
     const client = requireSupabase();
     const result = itemId
@@ -132,6 +159,16 @@ export function AdminNewsEditorPage() {
       <div className="panel form-panel">
         <div className="form-grid">
           <label>
+            カテゴリ
+            <select
+              value={item.category}
+              onChange={(event) => change('category', event.target.value as 'dive' | 'other')}
+            >
+              <option value="dive">ダイビングの予定</option>
+              <option value="other">その他</option>
+            </select>
+          </label>
+          <label>
             タイトル
             <input
               maxLength={120}
@@ -143,29 +180,51 @@ export function AdminNewsEditorPage() {
             本文
             <textarea value={item.body} onChange={(event) => change('body', event.target.value)} />
           </label>
-          <label>
-            次回予定日時（任意）
-            <input
-              type="datetime-local"
-              value={item.next_dive_at}
-              onChange={(event) => change('next_dive_at', event.target.value)}
-            />
-          </label>
-          <label>
-            次回場所（任意）
-            <input
-              value={item.next_dive_place}
-              onChange={(event) => change('next_dive_place', event.target.value)}
-            />
-          </label>
-          <label>
-            公開日時
-            <input
-              type="datetime-local"
-              value={item.published_at}
-              onChange={(event) => change('published_at', event.target.value)}
-            />
-          </label>
+          {item.category === 'dive' && (
+            <>
+              <label>
+                担当
+                <input
+                  value={item.staff}
+                  onChange={(event) => change('staff', event.target.value)}
+                />
+              </label>
+              <label>
+                開始日（任意）
+                <input
+                  type="date"
+                  value={item.dive_start}
+                  onChange={(event) => change('dive_start', event.target.value)}
+                />
+              </label>
+              <label>
+                終了日（任意）
+                <input
+                  type="date"
+                  min={item.dive_start}
+                  value={item.dive_end}
+                  onChange={(event) => change('dive_end', event.target.value)}
+                />
+              </label>
+              <label>
+                場所（任意）
+                <input
+                  value={item.place}
+                  onChange={(event) => change('place', event.target.value)}
+                />
+              </label>
+            </>
+          )}
+          {item.category === 'dive' && (
+            <label>
+              公開日時
+              <input
+                type="datetime-local"
+                value={item.published_at}
+                onChange={(event) => change('published_at', event.target.value)}
+              />
+            </label>
+          )}
           <label>
             <input
               type="checkbox"

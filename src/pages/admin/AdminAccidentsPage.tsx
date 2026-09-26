@@ -18,7 +18,8 @@ const tags = [
   '視界不良',
   '海況',
   '海洋生物',
-  'その他'
+  'その他',
+  '不明'
 ];
 const emptyAccident = (): Accident => ({
   id: '',

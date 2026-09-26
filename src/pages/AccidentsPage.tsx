@@ -4,6 +4,7 @@ import { useAppData } from '../context/AppDataContext';
 import { accidentOutcomeMeta, accidentOutcomes, sortAndFilterAccidents } from '../lib/logic';
 import { usePageTitle } from '../lib/pageTitle';
 import type { AccidentOutcome } from '../types';
+import { PageHeading } from '../components/PageHeading';
 
 export function AccidentCard({
   accident
@@ -52,16 +53,15 @@ export function AccidentsPage() {
   );
   return (
     <>
-      <p className="kicker">事故事例</p>
-      <h1>事故から学ぶ</h1>
-      <p className="lead">なぜ起きたか、どうすれば防げたかを考えるための事例です。</p>
+      <PageHeading page="accidents" />
       <div className="filter-row" aria-label="結果で絞り込み">
-        <button className={outcome === 'all' ? 'selected' : ''} onClick={() => setOutcome('all')}>
+        <button className="chip" aria-pressed={outcome === 'all'} onClick={() => setOutcome('all')}>
           すべて
         </button>
         {accidentOutcomes.map((item) => (
           <button
-            className={outcome === item.value ? 'selected' : ''}
+            className="chip"
+            aria-pressed={outcome === item.value}
             key={item.value}
             onClick={() => setOutcome(item.value)}
           >
@@ -70,12 +70,13 @@ export function AccidentsPage() {
         ))}
       </div>
       <div className="filter-row" aria-label="タグで絞り込み">
-        <button className={tag === 'all' ? 'selected' : ''} onClick={() => setTag('all')}>
+        <button className="chip" aria-pressed={tag === 'all'} onClick={() => setTag('all')}>
           すべてのタグ
         </button>
         {tags.map((item) => (
           <button
-            className={tag === item ? 'selected' : ''}
+            className="chip"
+            aria-pressed={tag === item}
             key={item}
             onClick={() => setTag(item)}
           >

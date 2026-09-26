@@ -123,12 +123,14 @@ export function ContentBlock({
   block,
   preview = false,
   checklistKey,
-  print = false
+  print = false,
+  docSlug
 }: {
   block: Block;
   preview?: boolean;
   checklistKey?: string;
   print?: boolean;
+  docSlug?: string;
 }) {
   switch (block.type) {
     case 'heading':
@@ -145,7 +147,9 @@ export function ContentBlock({
         </aside>
       );
     case 'signs':
-      return <SignsBlock sections={block.sections} preview={preview} print={print} />;
+      return (
+        <SignsBlock sections={block.sections} preview={preview} print={print} docSlug={docSlug} />
+      );
     case 'cards':
       return <CardBlock {...block} />;
     case 'steps':

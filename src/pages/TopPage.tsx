@@ -9,6 +9,7 @@ import { requireSupabase } from '../lib/supabase';
 import { usePageTitle } from '../lib/pageTitle';
 import type { Profile, Thread } from '../types';
 import { AccidentCard } from './AccidentsPage';
+import { usePageText } from '../components/PageHeading';
 
 function RecentThreads() {
   const { configured, isBoardMember } = useAppData();
@@ -25,12 +26,12 @@ function RecentThreads() {
         const items = (data ?? []) as Thread[];
         const profiles = await requireSupabase()
           .from('profiles')
-          .select('id, display_name, avatar_path')
+          .select('id, display_name, avatar_path, avatar_style')
           .in('id', [...new Set(items.map((item) => item.author_uid))]);
         const byId = new Map(
           (profiles.data ?? []).map((item) => [
             item.id,
-            item as Pick<Profile, 'id' | 'display_name' | 'avatar_path'>
+            item as Pick<Profile, 'id' | 'display_name' | 'avatar_path' | 'avatar_style'>
           ])
         );
         setThreads(items.map((item) => ({ ...item, profile: byId.get(item.author_uid) ?? null })));
@@ -54,17 +55,16 @@ function RecentThreads() {
 export function TopPage() {
   usePageTitle('ホーム');
   const { docs, news, accidents, isBoardMember, loading } = useAppData();
+  const text = usePageText('home');
   const nextDive = selectNextDive(news);
   const newestDocs = latestDocs(docs);
 
   return (
     <>
       <section className="hero">
-        <p className="kicker">ダイビング情報の共有サイト</p>
-        <h1>知って潜れば、海はもっと楽しい。</h1>
-        <p className="lead">
-          機材のこと、事故から学べること、仲間の経験。理解を深めて、安全に楽しく潜るための情報をここで共有します。
-        </p>
+        <p className="kicker">{text.kicker}</p>
+        <h1>{text.title}</h1>
+        <p className="lead">{text.lead}</p>
         <div className="button-row">
           <Link className="button" to="/docs">
             資料を見る
@@ -84,8 +84,9 @@ export function TopPage() {
           <span className="next-dive-kicker">NEXT DIVE</span>
           {nextDive ? (
             <p>
-              <b>{formatNextDive(nextDive.next_dive_at as string)}</b>
-              {nextDive.next_dive_place && <span> ・ {nextDive.next_dive_place}</span>}
+              <b>{formatNextDive(nextDive)}</b>
+              {nextDive.place && <span> ・ {nextDive.place}</span>}
+              {nextDive.staff && <small>担当：{nextDive.staff}</small>}
             </p>
           ) : (
             <p>次回の予定は未定です。</p>
@@ -105,6 +106,7 @@ export function TopPage() {
               <Link className="panel news-row" to={`/news/${item.id}`} key={item.id}>
                 <span className="meta">
                   {item.pinned && '固定 ・ '}
+                  {item.category === 'dive' ? 'ダイビング ・ ' : 'その他 ・ '}
                   {item.published_at ? relativeDate(item.published_at) : ''}
                 </span>
                 <b>{item.title}</b>

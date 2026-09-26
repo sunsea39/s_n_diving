@@ -3,6 +3,7 @@ import { DocCard } from '../components/DocContent';
 import { useAppData } from '../context/AppDataContext';
 import { groupDocsByCategory } from '../lib/logic';
 import { usePageTitle } from '../lib/pageTitle';
+import { PageHeading } from '../components/PageHeading';
 
 export function DocsPage() {
   usePageTitle('資料');
@@ -14,13 +15,12 @@ export function DocsPage() {
 
   return (
     <>
-      <p className="kicker">資料</p>
-      <h1>安全資料</h1>
-      <p className="lead">潜る前に、仲間どうしで確認したい情報です。</p>
+      <PageHeading page="docs" />
       <div className="category-row" aria-label="資料カテゴリで絞り込む">
         {['すべて', ...groups.map((group) => group.category)].map((item) => (
           <button
-            className={category === item ? 'selected' : ''}
+            className="chip"
+            aria-pressed={category === item}
             key={item}
             onClick={() => setCategory(item)}
           >

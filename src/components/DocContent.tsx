@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { normalizeDocBody } from '../lib/logic';
 import type { DivingDoc } from '../types';
 import { ContentBlock } from './blocks';
+import { bookmarkAnchor } from '../lib/logic';
+import { BookmarkButton } from './BookmarkButton';
 
 const assetPath = (icon: string) => `${import.meta.env.BASE_URL}img/${icon}.png`;
 
@@ -38,11 +40,11 @@ export function DocContent({
   print?: boolean;
 }) {
   const body = normalizeDocBody(doc.body);
-  const anchors = body.blocks.flatMap((block, index) => {
-    if (block.type === 'heading') return [{ id: `heading-${index}`, label: block.text }];
+  const anchors = body.blocks.flatMap((block) => {
+    if (block.type === 'heading') return [{ id: bookmarkAnchor(block.text), label: block.text }];
     if (block.type === 'signs') {
       return block.sections.map((section) => ({
-        id: `equipment-${section.no}`,
+        id: bookmarkAnchor(section.name),
         label: `${section.no}. ${section.name}`
       }));
     }
@@ -52,7 +54,10 @@ export function DocContent({
   return (
     <article className="doc-detail">
       <p className="kicker">{doc.category}</p>
-      <h1>{doc.title}</h1>
+      <div className="doc-title-row">
+        <h1>{doc.title}</h1>
+        {!print && !preview && <BookmarkButton docSlug={doc.slug} label={doc.title} />}
+      </div>
       {body.intro && <p className="lead">{body.intro}</p>}
       {!print && anchors.length > 0 && (
         <nav className="anchor-chips" aria-label="ページ内目次">
@@ -66,14 +71,23 @@ export function DocContent({
       <div className="doc-blocks">
         {body.blocks.map((block, index) => (
           <section
-            id={block.type === 'heading' ? `heading-${index}` : undefined}
+            id={block.type === 'heading' ? bookmarkAnchor(block.text) : undefined}
             key={`${block.type}-${index}`}
           >
+            {block.type === 'heading' && !print && !preview && (
+              <BookmarkButton
+                docSlug={doc.slug}
+                anchor={bookmarkAnchor(block.text)}
+                label={block.text}
+                small
+              />
+            )}
             <ContentBlock
               block={block}
               preview={preview}
               print={print}
               checklistKey={preview || print ? undefined : `doc:${doc.slug}:check`}
+              docSlug={doc.slug}
             />
           </section>
         ))}

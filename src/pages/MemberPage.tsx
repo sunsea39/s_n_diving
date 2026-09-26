@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { Avatar } from '../components/Avatar';
 import { usePageTitle } from '../lib/pageTitle';
 import { requireSupabase } from '../lib/supabase';
+import { totalDiveCount } from '../lib/logic';
 import type { Post, Profile, Thread } from '../types';
 
 type MemberPost = { id: string; threadId: number; label: string; createdAt: string };
@@ -53,14 +54,24 @@ export function MemberPage() {
     <>
       <p className="kicker">仲間</p>
       <section className="panel member-profile">
-        <Avatar name={profile.display_name} path={profile.avatar_path} />
+        <Avatar
+          name={profile.display_name}
+          path={profile.avatar_path}
+          style={profile.avatar_style}
+        />
         <h1>{profile.display_name}</h1>
         {profile.bio && <p>{profile.bio}</p>}
         <dl>
           <dt>ライセンス</dt>
-          <dd>{profile.license || '未登録'}</dd>
+          <dd>
+            {profile.licenses?.map((item) => `${item.org} ${item.rank}`).join('、') ||
+              profile.license ||
+              '未登録'}
+          </dd>
           <dt>経験本数</dt>
-          <dd>{profile.dive_count == null ? '未登録' : `${profile.dive_count}本`}</dd>
+          <dd>{totalDiveCount(profile.dive_count, profile.logged_dives)}本</dd>
+          <dt>最後にダイビングした日</dt>
+          <dd>{profile.last_dived_on ?? 'まだ記録がありません'}</dd>
           <dt>よく潜る海</dt>
           <dd>{profile.favorite_areas || '未登録'}</dd>
         </dl>

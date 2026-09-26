@@ -81,16 +81,30 @@ export function avatarCropDimensions(width: number, height: number, size = 512) 
   };
 }
 
+export function serviceMonthsSince(lastServiceOn: string | null, now = new Date()): number | null {
+  if (!lastServiceOn) return null;
+  const [year, month, day] = lastServiceOn.split('-').map(Number);
+  const months = (now.getFullYear() - year) * 12 + now.getMonth() + 1 - month;
+  return months - (now.getDate() < day ? 1 : 0);
+}
 export function serviceBadge(
-  nextServiceOn: string | null,
+  lastServiceOn: string | null,
   now = new Date()
-): 'overdue' | 'soon' | null {
-  if (!nextServiceOn) return null;
-  const date = new Date(`${nextServiceOn}T00:00:00`);
+): 'good' | 'soon' | 'overdue' | 'none' {
+  if (!lastServiceOn) return 'none';
+  // Compare exact dates so "18 months and 1 day" already counts as overdue.
+  const [year, month, day] = lastServiceOn.split('-').map(Number);
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const diff = Math.ceil((date.getTime() - today.getTime()) / 86400000);
-  if (diff < 0) return 'overdue';
-  return diff <= 30 ? 'soon' : null;
+  const after = (months: number) => new Date(year, month - 1 + months, day);
+  if (today <= after(12)) return 'good';
+  if (today <= after(18)) return 'soon';
+  return 'overdue';
+}
+export function serviceBadgeLabel(lastServiceOn: string | null, now = new Date()): string {
+  const months = serviceMonthsSince(lastServiceOn, now);
+  if (months === null) return '点検日の記録なし';
+  const age = months < 1 ? '1か月未満' : `${months}か月`;
+  return `${age} ・ ${serviceBadge(lastServiceOn, now) === 'good' ? '良好' : serviceBadge(lastServiceOn, now) === 'soon' ? 'そろそろ点検' : '点検をおすすめ'}`;
 }
 
 export function validateThreadInput(input: {
@@ -144,32 +158,65 @@ export function relativeDate(value: string | Date, now = new Date()): string {
   return `${date.getMonth() + 1}月${date.getDate()}日`;
 }
 
+export function jstDate(now = new Date()): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Tokyo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(now);
+  const value = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? '';
+  return `${value('year')}-${value('month')}-${value('day')}`;
+}
 export function selectNextDive(news: NewsItem[], now = new Date()): NewsItem | null {
+  const today = jstDate(now);
   return (
     news
-      .filter((item) => item.next_dive_at && new Date(item.next_dive_at).getTime() > now.getTime())
-      .sort(
-        (first, second) =>
-          new Date(first.next_dive_at as string).getTime() -
-          new Date(second.next_dive_at as string).getTime()
-      )[0] ?? null
+      .filter(
+        (item) =>
+          item.category === 'dive' && item.dive_start && (item.dive_end ?? item.dive_start) >= today
+      )
+      .sort((a, b) => (a.dive_start ?? '').localeCompare(b.dive_start ?? ''))[0] ?? null
   );
 }
-
-export function formatNextDive(value: string | Date): string {
-  const date = typeof value === 'string' ? new Date(value) : value;
+function formatJstDay(value: string): string {
+  const date = new Date(`${value}T00:00:00+09:00`);
   const parts = new Intl.DateTimeFormat('ja-JP', {
     timeZone: 'Asia/Tokyo',
     month: 'numeric',
     day: 'numeric',
-    weekday: 'short',
-    hour: 'numeric',
-    minute: '2-digit',
-    hourCycle: 'h23'
+    weekday: 'short'
   }).formatToParts(date);
   const part = (type: Intl.DateTimeFormatPartTypes) =>
     parts.find((item) => item.type === type)?.value ?? '';
-  return `${part('month')}/${part('day')}(${part('weekday')}) ${part('hour')}:${part('minute')}`;
+  return `${part('month')}/${part('day')}(${part('weekday')})`;
+}
+export function formatNextDive(value: NewsItem | string | Date): string {
+  if (typeof value === 'object' && !(value instanceof Date)) {
+    const start = value.dive_start;
+    if (!start) return '';
+    return value.dive_end && value.dive_end !== start
+      ? `${formatJstDay(start)}〜${formatJstDay(value.dive_end)}`
+      : formatJstDay(start);
+  }
+  const date = typeof value === 'string' ? new Date(value) : value;
+  return formatJstDay(jstDate(date));
+}
+
+export function bookmarkAnchor(text: string): string {
+  let hash = 2166136261;
+  for (const char of text) {
+    hash ^= char.codePointAt(0) ?? 0;
+    hash = Math.imul(hash, 16777619);
+  }
+  return `sec-${(hash >>> 0).toString(36)}`;
+}
+export function reorderSortOrders(ids: string[]): { id: string; sort_order: number }[] {
+  return ids.map((id, index) => ({ id, sort_order: (index + 1) * 10 }));
+}
+export function totalDiveCount(initial: number | null, logged: number | null): number {
+  return (initial ?? 0) + (logged ?? 0);
 }
 
 export function joinStatusMessage(status: JoinBoardStatus): string | null {

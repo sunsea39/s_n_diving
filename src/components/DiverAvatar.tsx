@@ -1,0 +1,346 @@
+/* eslint-disable react-refresh/only-export-components */
+import { useId } from 'react';
+
+export const PALETTE = {
+  skin: { light: '#F6D7C3', fair: '#EDC0A0', tan: '#D9A07A', brown: '#B8794F', deep: '#8A5634' },
+  hair: {
+    black: '#2B2522',
+    brown: '#5A3A24',
+    light: '#A8753F',
+    blond: '#D8B26A',
+    gray: '#8C9398',
+    teal: '#1B998B'
+  },
+  suit: { navy: '#0B3C5D', black: '#22272B', teal: '#1B998B', coral: '#D64527' },
+  bg: {
+    mist: '#EEF5F6',
+    sea: '#CDEBE5',
+    sand: '#FDE9C8',
+    coral: '#F9D9D2',
+    sky: '#DDE3F5',
+    night: '#0B3C5D'
+  }
+} as const;
+export const HAIR = {
+  buzz: {
+    label: 'ベリーショート',
+    back: '',
+    front: 'M36 52 C36 34 48 26 60 26 C72 26 84 34 84 52 C80 44 72 40 60 40 C48 40 40 44 36 52 Z'
+  },
+  short: {
+    label: 'ショート',
+    back: '',
+    front:
+      'M35 56 C33 36 46 25 61 25 C76 25 87 35 85 55 C82 47 77 42 71 40 C63 46 50 47 40 46 C38 49 36 52 35 56 Z'
+  },
+  bob: {
+    label: 'ボブ',
+    back: 'M32 60 C30 36 44 24 60 24 C76 24 90 36 88 60 L88 78 C88 82 84 84 80 82 L80 60 L40 60 L40 82 C36 84 32 82 32 78 Z',
+    front: 'M36 54 C36 36 48 27 60 27 C72 27 84 36 84 54 C78 46 70 42 60 42 C50 42 42 46 36 54 Z'
+  },
+  long: {
+    label: 'ロング',
+    back: 'M30 60 C28 34 44 22 60 22 C76 22 92 34 90 60 L92 100 C84 104 80 100 80 96 L80 60 L40 60 L40 96 C40 100 36 104 28 100 Z',
+    front: 'M36 56 C35 36 48 26 62 26 C76 26 86 36 84 54 C78 42 66 38 54 40 C46 42 40 48 36 56 Z'
+  },
+  pony: {
+    label: 'ポニーテール',
+    back: 'M80 38 C98 38 102 58 97 74 C95 80 90 82 88 78 C92 64 90 50 80 46 Z',
+    front: 'M36 54 C36 36 48 27 60 27 C72 27 84 36 84 54 C78 46 70 42 60 42 C50 42 42 46 36 54 Z'
+  },
+  bun: {
+    label: 'おだんご',
+    back: 'M50 20 A10 10 0 1 1 70 20 A10 10 0 1 1 50 20 Z',
+    front: 'M36 54 C36 36 48 27 60 27 C72 27 84 36 84 54 C78 46 70 42 60 42 C50 42 42 46 36 54 Z'
+  }
+} as const;
+export const FACE = {
+  smile: { label: 'にっこり' },
+  calm: { label: 'ほほえみ' },
+  wink: { label: 'ウインク' },
+  cool: { label: 'きりっ' }
+} as const;
+export type AvatarStyle = {
+  skin: keyof typeof PALETTE.skin;
+  hair: keyof typeof HAIR;
+  hairColor: keyof typeof PALETTE.hair;
+  face: keyof typeof FACE;
+  suit: keyof typeof PALETTE.suit;
+  bg: keyof typeof PALETTE.bg;
+  mask: boolean;
+};
+export const DEFAULT_AVATAR_STYLE: AvatarStyle = {
+  skin: 'fair',
+  hair: 'short',
+  hairColor: 'black',
+  face: 'smile',
+  suit: 'navy',
+  bg: 'mist',
+  mask: false
+};
+export const PRESETS: (AvatarStyle & { name: string })[] = [
+  { name: 'ショート・紺', ...DEFAULT_AVATAR_STYLE },
+  {
+    name: 'ボブ・ティール',
+    skin: 'light',
+    hair: 'bob',
+    hairColor: 'brown',
+    face: 'calm',
+    suit: 'teal',
+    bg: 'sand',
+    mask: false
+  },
+  {
+    name: 'ロング・コーラル',
+    skin: 'tan',
+    hair: 'long',
+    hairColor: 'black',
+    face: 'wink',
+    suit: 'coral',
+    bg: 'sea',
+    mask: false
+  },
+  {
+    name: 'ベリーショート・黒',
+    skin: 'brown',
+    hair: 'buzz',
+    hairColor: 'black',
+    face: 'cool',
+    suit: 'black',
+    bg: 'sky',
+    mask: false
+  },
+  {
+    name: 'ポニーテール・マスク',
+    skin: 'fair',
+    hair: 'pony',
+    hairColor: 'light',
+    face: 'smile',
+    suit: 'navy',
+    bg: 'coral',
+    mask: true
+  },
+  {
+    name: 'おだんご・ティール',
+    skin: 'light',
+    hair: 'bun',
+    hairColor: 'blond',
+    face: 'calm',
+    suit: 'teal',
+    bg: 'mist',
+    mask: false
+  },
+  {
+    name: 'ショート・マスク',
+    skin: 'tan',
+    hair: 'short',
+    hairColor: 'brown',
+    face: 'wink',
+    suit: 'black',
+    bg: 'sea',
+    mask: true
+  },
+  {
+    name: 'ロング・紺',
+    skin: 'deep',
+    hair: 'long',
+    hairColor: 'black',
+    face: 'smile',
+    suit: 'navy',
+    bg: 'sand',
+    mask: false
+  },
+  {
+    name: 'ボブ・グレー',
+    skin: 'fair',
+    hair: 'bob',
+    hairColor: 'gray',
+    face: 'calm',
+    suit: 'coral',
+    bg: 'sky',
+    mask: false
+  },
+  {
+    name: 'ベリーショート・夜',
+    skin: 'light',
+    hair: 'buzz',
+    hairColor: 'light',
+    face: 'smile',
+    suit: 'teal',
+    bg: 'night',
+    mask: false
+  },
+  {
+    name: 'ポニーテール・黒',
+    skin: 'brown',
+    hair: 'pony',
+    hairColor: 'black',
+    face: 'cool',
+    suit: 'black',
+    bg: 'mist',
+    mask: false
+  },
+  {
+    name: 'ショート・ティール髪',
+    skin: 'fair',
+    hair: 'short',
+    hairColor: 'teal',
+    face: 'wink',
+    suit: 'navy',
+    bg: 'sand',
+    mask: true
+  }
+];
+const shade = (hex: string, f: number) => {
+  const n = parseInt(hex.slice(1), 16);
+  const c = [n >> 16, (n >> 8) & 255, n & 255].map((v) =>
+    Math.max(0, Math.min(255, Math.round(v * f)))
+  );
+  return `#${c.map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+};
+export function isAvatarStyle(value: unknown): value is AvatarStyle {
+  if (!value || typeof value !== 'object') return false;
+  const s = value as AvatarStyle;
+  return (
+    s.skin in PALETTE.skin &&
+    s.hair in HAIR &&
+    s.hairColor in PALETTE.hair &&
+    s.face in FACE &&
+    s.suit in PALETTE.suit &&
+    s.bg in PALETTE.bg &&
+    typeof s.mask === 'boolean'
+  );
+}
+export function DiverAvatar({ style, title }: { style: AvatarStyle; title?: string }) {
+  const clip = useId().replace(/:/g, '');
+  const s = PALETTE.skin[style.skin],
+    h = PALETTE.hair[style.hairColor],
+    w = PALETTE.suit[style.suit],
+    b = PALETTE.bg[style.bg],
+    H = HAIR[style.hair],
+    ink = '#2B2522';
+  return (
+    <svg
+      viewBox="0 0 120 120"
+      xmlns="http://www.w3.org/2000/svg"
+      role={title ? 'img' : undefined}
+      aria-label={title}
+    >
+      <defs>
+        <clipPath id={clip}>
+          <circle cx="60" cy="60" r="60" />
+        </clipPath>
+      </defs>
+      <g clipPath={`url(#${clip})`}>
+        <circle cx="60" cy="60" r="60" fill={b} />
+        {H.back && <path d={H.back} fill={h} />}
+        <path d="M18 122 C22 97 40 87 60 87 C80 87 98 97 102 122 Z" fill={w} />
+        <path
+          d="M50 88 L60 101 L70 88"
+          fill="none"
+          stroke="#1B998B"
+          strokeWidth="3"
+          strokeLinejoin="round"
+        />
+        <rect x="52" y="76" width="16" height="13" rx="4" fill={shade(s, 0.93)} />
+        <ellipse cx="35.5" cy="60" rx="4.5" ry="6" fill={s} />
+        <ellipse cx="84.5" cy="60" rx="4.5" ry="6" fill={s} />
+        <ellipse cx="60" cy="58" rx="24" ry="27" fill={s} />
+        <circle cx="46" cy="66" r="4" fill="#E88B7A" opacity=".28" />
+        <circle cx="74" cy="66" r="4" fill="#E88B7A" opacity=".28" />
+        {style.face === 'smile' && (
+          <>
+            <path
+              d="M48 59 q4 -5 8 0 M64 59 q4 -5 8 0"
+              fill="none"
+              stroke={ink}
+              strokeWidth="2.6"
+              strokeLinecap="round"
+            />
+            <path
+              d="M52 70 q8 8 16 0"
+              fill="none"
+              stroke={ink}
+              strokeWidth="2.6"
+              strokeLinecap="round"
+            />
+          </>
+        )}
+        {style.face === 'calm' && (
+          <>
+            <circle cx="52" cy="58" r="2.6" fill={ink} />
+            <circle cx="68" cy="58" r="2.6" fill={ink} />
+            <path
+              d="M54 70 q6 5 12 0"
+              fill="none"
+              stroke={ink}
+              strokeWidth="2.4"
+              strokeLinecap="round"
+            />
+          </>
+        )}
+        {style.face === 'wink' && (
+          <>
+            <circle cx="52" cy="58" r="2.6" fill={ink} />
+            <path
+              d="M64 58 q4 -4 8 0"
+              fill="none"
+              stroke={ink}
+              strokeWidth="2.6"
+              strokeLinecap="round"
+            />
+            <path
+              d="M53 69 q7 7 14 0"
+              fill="none"
+              stroke={ink}
+              strokeWidth="2.6"
+              strokeLinecap="round"
+            />
+          </>
+        )}
+        {style.face === 'cool' && (
+          <>
+            <path
+              d="M46 51 l9 -2 M74 51 l-9 -2"
+              stroke={ink}
+              strokeWidth="2.4"
+              strokeLinecap="round"
+            />
+            <circle cx="52" cy="58" r="2.6" fill={ink} />
+            <circle cx="68" cy="58" r="2.6" fill={ink} />
+            <path
+              d="M55 71 q5 2 10 0"
+              fill="none"
+              stroke={ink}
+              strokeWidth="2.4"
+              strokeLinecap="round"
+            />
+          </>
+        )}
+        <path d={H.front} fill={h} />
+        {style.mask && (
+          <>
+            <path
+              d="M35 44 C45 39 75 39 85 44"
+              fill="none"
+              stroke="#22272B"
+              strokeWidth="4"
+              strokeLinecap="round"
+            />
+            <rect
+              x="43"
+              y="32"
+              width="34"
+              height="13"
+              rx="6.5"
+              fill="#BFE6E0"
+              stroke="#0B3C5D"
+              strokeWidth="2.5"
+            />
+            <line x1="60" y1="33" x2="60" y2="44" stroke="#0B3C5D" strokeWidth="2" />
+          </>
+        )}
+      </g>
+    </svg>
+  );
+}

@@ -14,15 +14,17 @@ export function NewsDetailPage() {
 
   return (
     <article className="panel thread-header">
-      <p className="kicker">お知らせ</p>
+      <p className="kicker">{item.category === 'dive' ? 'ダイビング' : 'その他'}</p>
       <h1>{item.title}</h1>
       <p className="meta">
         {item.published_at ? new Date(item.published_at).toLocaleString('ja-JP') : ''}
       </p>
-      {item.next_dive_at && (
+      {item.category === 'dive' && item.dive_start && (
         <p>
-          <b>次回予定：</b>
-          {new Date(item.next_dive_at).toLocaleString('ja-JP')} {item.next_dive_place}
+          <b>予定：</b>
+          {item.dive_start}
+          {item.dive_end && item.dive_end !== item.dive_start ? `〜${item.dive_end}` : ''}{' '}
+          {item.place} {item.staff && `・担当：${item.staff}`}
         </p>
       )}
       <p className="post-body">

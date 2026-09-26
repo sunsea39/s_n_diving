@@ -196,6 +196,7 @@ function PostCard({
             id={post.profile?.id}
             name={post.profile?.display_name ?? post.author_name}
             path={post.profile?.avatar_path}
+            style={post.profile?.avatar_style}
             small
           />
           <b>{post.profile?.display_name ?? post.author_name}</b>
@@ -267,12 +268,12 @@ export function ThreadPage() {
     ] as string[];
     const profiles = await client
       .from('profiles')
-      .select('id, display_name, avatar_path')
+      .select('id, display_name, avatar_path, avatar_style')
       .in('id', ids);
     const byId = new Map(
       (profiles.data ?? []).map((item) => [
         item.id,
-        item as Pick<Profile, 'id' | 'display_name' | 'avatar_path'>
+        item as Pick<Profile, 'id' | 'display_name' | 'avatar_path' | 'avatar_style'>
       ])
     );
     if (nextThread) setThread({ ...nextThread, profile: byId.get(nextThread.author_uid) ?? null });
@@ -327,6 +328,7 @@ export function ThreadPage() {
               id={thread.profile?.id}
               name={thread.profile?.display_name ?? thread.author_name}
               path={thread.profile?.avatar_path}
+              style={thread.profile?.avatar_style}
               small
             />
             {thread.profile?.display_name ?? thread.author_name}

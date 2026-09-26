@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 import type { User } from '@supabase/supabase-js';
-import type { Accident, AccountRole, DivingDoc, NewsItem, Profile } from '../types';
+import type { Accident, AccountRole, DivingDoc, NewsItem, PageText, Profile } from '../types';
 
 export interface AppDataValue {
   configured: boolean;
@@ -9,6 +9,7 @@ export interface AppDataValue {
   news: NewsItem[];
   accidents: Accident[];
   disclaimer: string;
+  pageTexts: Partial<Record<PageText['key'], Omit<PageText, 'key'>>>;
   user: User | null;
   profile: Profile | null;
   role: AccountRole | null;

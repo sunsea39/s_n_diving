@@ -7,12 +7,43 @@ export interface Profile {
   role: AccountRole;
   display_name: string;
   avatar_path: string | null;
+  avatar_style: import('./components/DiverAvatar').AvatarStyle | null;
   bio: string;
   license: string;
+  licenses: { org: string; rank: string }[];
   dive_count: number | null;
+  logged_dives: number;
+  last_dived_on: string | null;
   favorite_areas: string;
   created_at: string;
   approved_at: string | null;
+}
+
+export interface Bookmark {
+  id: string;
+  user_id: string;
+  doc_slug: string;
+  anchor: string;
+  label: string;
+  created_at: string;
+}
+export interface DiveLog {
+  id: string;
+  user_id: string;
+  dived_on: string;
+  prefecture: string;
+  location: string;
+  service: string;
+  dives: number;
+  comment: string;
+  created_at: string;
+  updated_at: string;
+}
+export interface PageText {
+  key: 'home' | 'docs' | 'accidents' | 'board' | 'news' | 'more';
+  kicker: string;
+  title: string;
+  lead: string;
 }
 
 export interface GearNote {
@@ -95,6 +126,11 @@ export interface NewsItem {
   body: string;
   next_dive_at: string | null;
   next_dive_place: string | null;
+  category?: 'dive' | 'other';
+  staff?: string;
+  dive_start?: string | null;
+  dive_end?: string | null;
+  place?: string;
   pinned: boolean;
   published_at: string | null;
 }
@@ -119,7 +155,7 @@ export interface Thread {
   hidden: boolean;
   created_at: string;
   updated_at: string;
-  profile?: Pick<Profile, 'id' | 'display_name' | 'avatar_path'> | null;
+  profile?: Pick<Profile, 'id' | 'display_name' | 'avatar_path' | 'avatar_style'> | null;
 }
 
 export interface Post {
@@ -132,7 +168,7 @@ export interface Post {
   hidden: boolean;
   created_at: string;
   updated_at: string;
-  profile?: Pick<Profile, 'id' | 'display_name' | 'avatar_path'> | null;
+  profile?: Pick<Profile, 'id' | 'display_name' | 'avatar_path' | 'avatar_style'> | null;
 }
 
 export type AccidentOutcome = 'fatal' | 'serious' | 'minor' | 'near_miss';

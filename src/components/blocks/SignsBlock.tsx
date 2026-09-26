@@ -1,17 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import type { EquipmentSection, Severity } from '../../types';
 import { filterSectionsBySeverity } from '../../lib/logic';
+import { bookmarkAnchor } from '../../lib/logic';
+import { BookmarkButton } from '../BookmarkButton';
 
 const assetPath = (icon: string) => `${import.meta.env.BASE_URL}img/${icon}.png`;
 
 export function SignsBlock({
   sections,
   preview = false,
-  print = false
+  print = false,
+  docSlug
 }: {
   sections: EquipmentSection[];
   preview?: boolean;
   print?: boolean;
+  docSlug?: string;
 }) {
   const [filter, setFilter] = useState<Severity | 'all'>('all');
   const [open, setOpen] = useState<number[]>(() =>
@@ -48,11 +52,12 @@ export function SignsBlock({
         <span className="check-dot">● 早めに点検・交換を検討</span>
       </div>
       <div className="filter-row" aria-label="症状を絞り込む">
-        <button className={filter === 'all' ? 'selected' : ''} onClick={() => setFilter('all')}>
+        <button className="chip" aria-pressed={filter === 'all'} onClick={() => setFilter('all')}>
           すべて
         </button>
         <button
-          className={filter === 'stop' ? 'selected danger-choice' : ''}
+          className="chip danger-choice"
+          aria-pressed={filter === 'stop'}
           onClick={() => setFilter('stop')}
         >
           <span className="always-red">●</span> 即中止のみ
@@ -65,6 +70,7 @@ export function SignsBlock({
             section={section}
             isOpen={open.includes(section.no)}
             onToggle={() => toggle(section.no)}
+            docSlug={docSlug}
           />
         ))}
       </div>
@@ -77,7 +83,7 @@ export function SignsBlock({
 
 function PrintEquipmentPanel({ section }: { section: EquipmentSection }) {
   return (
-    <section id={`equipment-${section.no}`} className="panel equipment equipment-print">
+    <section id={bookmarkAnchor(section.name)} className="panel equipment equipment-print">
       <div className="equipment-toggle">
         <img src={assetPath(section.icon)} alt="" />
         <span>
@@ -109,11 +115,13 @@ function PrintEquipmentPanel({ section }: { section: EquipmentSection }) {
 export function EquipmentPanel({
   section,
   isOpen,
-  onToggle
+  onToggle,
+  docSlug
 }: {
   section: EquipmentSection;
   isOpen: boolean;
   onToggle: () => void;
+  docSlug?: string;
 }) {
   const bodyClip = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -124,7 +132,15 @@ export function EquipmentPanel({
   }, [isOpen]);
 
   return (
-    <section id={`equipment-${section.no}`} className="panel equipment">
+    <section id={bookmarkAnchor(section.name)} className="panel equipment">
+      {docSlug && (
+        <BookmarkButton
+          docSlug={docSlug}
+          anchor={bookmarkAnchor(section.name)}
+          label={`${section.no}. ${section.name}`}
+          small
+        />
+      )}
       <button className="equipment-toggle" onClick={onToggle} aria-expanded={isOpen}>
         <img src={assetPath(section.icon)} alt="" />
         <span>

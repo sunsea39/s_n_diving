@@ -38,7 +38,7 @@ function Drawer({
   useEffect(() => {
     if (!open) return;
     const triggerElement = trigger.current;
-    drawer.current?.querySelector<HTMLElement>('button, a')?.focus();
+    drawer.current?.querySelector<HTMLElement>('button, a')?.focus({ preventScroll: true });
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') close();
     };
@@ -47,7 +47,7 @@ function Drawer({
     return () => {
       document.body.classList.remove('drawer-open');
       window.removeEventListener('keydown', onKeyDown);
-      triggerElement?.focus();
+      triggerElement?.focus({ preventScroll: true });
     };
   }, [close, open, trigger]);
   useEffect(() => {
@@ -150,6 +150,15 @@ export function SiteLayout() {
     window.addEventListener('scroll', update, { passive: true });
     return () => window.removeEventListener('scroll', update);
   }, []);
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
+    if (location.hash) {
+      const id = decodeURIComponent(location.hash.slice(1));
+      requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ block: 'start' }));
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [location.pathname, location.hash]);
   return (
     <div className="app-shell">
       <header className="site-header" data-scrolled={scrolled || undefined}>
@@ -173,7 +182,12 @@ export function SiteLayout() {
           <ThemeToggleButton />
           {user && profile && (
             <Link className="header-avatar" to="/mypage">
-              <Avatar name={profile.display_name} path={profile.avatar_path} small />
+              <Avatar
+                name={profile.display_name}
+                path={profile.avatar_path}
+                style={profile.avatar_style}
+                small
+              />
             </Link>
           )}
           <button
@@ -198,7 +212,6 @@ export function SiteLayout() {
         <div className="footer-text-band">
           <div className="footer-inner">
             <strong>N×S_Diving ・ ダイビング情報の共有サイト</strong>
-            <span>仲間内専用ページです</span>
           </div>
         </div>
       </footer>
