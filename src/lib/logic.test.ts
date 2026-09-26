@@ -6,10 +6,14 @@ import {
   joinStatusMessage,
   relativeDate,
   selectNextDive,
+  sortAndFilterAccidents,
+  normalizeDocBody,
+  validateBlock,
+  accidentOutcomeMeta,
   validateDisplayName,
   validateThreadInput
 } from './logic';
-import type { EquipmentSection, NewsItem } from '../types';
+import type { Accident, EquipmentSection, NewsItem } from '../types';
 
 const section: EquipmentSection = {
   no: 1,
@@ -99,5 +103,67 @@ describe('合言葉の結果表示', () => {
     expect(joinStatusMessage('wrong')).toBe('合言葉が違います。');
     expect(joinStatusMessage('locked')).toContain('10分後');
     expect(joinStatusMessage('not_set')).toContain('設定');
+  });
+});
+
+describe('資料ブロック', () => {
+  it('旧形式を表示用ブロックへ変換する', () => {
+    const result = normalizeDocBody({
+      intro: '導入',
+      sections: [section],
+      habits: [{ title: '習慣', text: '本文' }],
+      disclaimer: '注記'
+    });
+    expect(result.blocks.map((block) => block.type)).toEqual(['text', 'signs', 'heading', 'cards']);
+    expect(validateBlock({ type: 'heading', text: '' })).toContain('見出し');
+    expect(validateBlock({ type: 'heading', text: '確認' })).toBeNull();
+  });
+});
+
+describe('事故事例', () => {
+  const accidents: Accident[] = [
+    {
+      id: 'old',
+      slug: 'old',
+      title: '古い',
+      occurred_on: '2024-01-01',
+      occurred_label: '',
+      location: '',
+      dive_style: '',
+      outcome: 'minor',
+      tags: ['海況'],
+      summary: '',
+      timeline: [],
+      causes: [],
+      lessons: [],
+      related_doc_slugs: [],
+      sources: [],
+      status: 'published'
+    },
+    {
+      id: 'new',
+      slug: 'new',
+      title: '新しい',
+      occurred_on: '2025-01-01',
+      occurred_label: '',
+      location: '',
+      dive_style: '',
+      outcome: 'near_miss',
+      tags: ['漂流'],
+      summary: '',
+      timeline: [],
+      causes: [],
+      lessons: [],
+      related_doc_slugs: [],
+      sources: [],
+      status: 'published'
+    }
+  ];
+  it('結果・タグで絞り込み、発生日の新しい順にする', () => {
+    expect(sortAndFilterAccidents(accidents).map((item) => item.id)).toEqual(['new', 'old']);
+    expect(sortAndFilterAccidents(accidents, { tag: '海況' }).map((item) => item.id)).toEqual([
+      'old'
+    ]);
+    expect(accidentOutcomeMeta('near_miss').label).toBe('ヒヤリ');
   });
 });

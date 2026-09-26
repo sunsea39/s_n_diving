@@ -12,6 +12,9 @@ interface AdminRow {
 export function AdminSettingsPage() {
   usePageTitle('設定');
   const [passcode, setPasscode] = useState('');
+  const [confirmation, setConfirmation] = useState('');
+  const [showPasscode, setShowPasscode] = useState(false);
+  const [passcodeIsSet, setPasscodeIsSet] = useState<boolean | null>(null);
   const [disclaimer, setDisclaimer] = useState('');
   const [admins, setAdmins] = useState<AdminRow[]>([]);
   const [message, setMessage] = useState('');
@@ -21,10 +24,12 @@ export function AdminSettingsPage() {
     const client = requireSupabase();
     void Promise.all([
       client.from('public_settings').select('disclaimer').single(),
-      client.from('admins').select('user_id, display_name, role').order('created_at')
-    ]).then(([settings, adminResult]) => {
+      client.from('admins').select('user_id, display_name, role').order('created_at'),
+      client.rpc('passcode_is_set')
+    ]).then(([settings, adminResult, passcodeResult]) => {
       if (settings.data) setDisclaimer(settings.data.disclaimer ?? '');
       if (adminResult.data) setAdmins(adminResult.data as AdminRow[]);
+      if (!passcodeResult.error) setPasscodeIsSet(Boolean(passcodeResult.data));
     });
   }, []);
 
@@ -33,6 +38,7 @@ export function AdminSettingsPage() {
     setMessage('');
     const invalid = validatePasscode(passcode);
     if (invalid) return setError(invalid);
+    if (passcode !== confirmation) return setError('確認用の合言葉が一致しません。');
 
     const result = await requireSupabase().rpc('set_passcode', { p_passcode: passcode });
     if (result.error) {
@@ -40,6 +46,8 @@ export function AdminSettingsPage() {
       return;
     }
     setPasscode('');
+    setConfirmation('');
+    setPasscodeIsSet(true);
     setMessage('合言葉を変更しました。掲示板メンバーは再入力が必要です。');
   };
 
@@ -58,14 +66,40 @@ export function AdminSettingsPage() {
       <div className="panel form-panel">
         <h2>合言葉を変更</h2>
         <p>変更すると、全員が新しい合言葉を入力するまで掲示板を利用できなくなります。</p>
+        {passcodeIsSet === false && (
+          <p className="warning">現在、合言葉は未設定です。掲示板には誰も入れません。</p>
+        )}
         <label>
           新しい合言葉（8文字以上）
           <input
-            type="password"
+            id="new-passcode"
+            type={showPasscode ? 'text' : 'password'}
+            autoComplete="new-password"
+            placeholder="8文字以上"
             minLength={8}
             value={passcode}
             onChange={(event) => setPasscode(event.target.value)}
           />
+        </label>
+        <label>
+          新しい合言葉（確認）
+          <input
+            id="new-passcode-confirmation"
+            type={showPasscode ? 'text' : 'password'}
+            autoComplete="new-password"
+            placeholder="もう一度入力"
+            minLength={8}
+            value={confirmation}
+            onChange={(event) => setConfirmation(event.target.value)}
+          />
+        </label>
+        <label className="inline-check">
+          <input
+            type="checkbox"
+            checked={showPasscode}
+            onChange={(event) => setShowPasscode(event.target.checked)}
+          />
+          表示する
         </label>
         <div className="button-row">
           <button className="button-danger" onClick={() => void changePasscode()}>

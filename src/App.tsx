@@ -3,6 +3,8 @@ import { AdminGuard, BoardGuard } from './components/Guards';
 import { SiteLayout } from './components/SiteLayout';
 import { AppDataProvider } from './context/AppDataProvider';
 import { AdminLoginPage } from './pages/AdminLoginPage';
+import { AccidentDetailPage } from './pages/AccidentDetailPage';
+import { AccidentsPage } from './pages/AccidentsPage';
 import { DocDetailPage } from './pages/DocDetailPage';
 import { DocsPage } from './pages/DocsPage';
 import { JoinPage } from './pages/JoinPage';
@@ -23,6 +25,8 @@ export default function App() {
           <Route path="/" element={<TopPage />} />
           <Route path="/docs" element={<DocsPage />} />
           <Route path="/docs/:slug" element={<DocDetailPage />} />
+          <Route path="/accidents" element={<AccidentsPage />} />
+          <Route path="/accidents/:slug" element={<AccidentDetailPage />} />
           <Route path="/news/:id" element={<NewsDetailPage />} />
           <Route path="/join" element={<JoinPage />} />
           <Route path="/more" element={<MorePage />} />

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import seedDocument from '../../supabase/seed/gear-signs.json';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
-import type { DivingDoc, NewsItem } from '../types';
+import type { Accident, DivingDoc, NewsItem } from '../types';
 import { AppDataContext } from './AppDataContext';
 
 const fallbackDocs = [seedDocument as DivingDoc];
@@ -10,6 +10,7 @@ const fallbackDocs = [seedDocument as DivingDoc];
 export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [docs, setDocs] = useState<DivingDoc[]>(fallbackDocs);
   const [news, setNews] = useState<NewsItem[]>([]);
+  const [accidents, setAccidents] = useState<Accident[]>([]);
   const [disclaimer, setDisclaimer] = useState('');
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
@@ -21,25 +22,32 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     if (!supabase) {
       setDocs(fallbackDocs);
       setNews([]);
+      setAccidents([]);
       setDisclaimer('');
       setLoading(false);
       return;
     }
 
     setLoading(true);
-    const [docResult, newsResult, settingsResult] = await Promise.all([
+    const [docResult, newsResult, settingsResult, accidentResult] = await Promise.all([
       supabase.from('docs').select('*').eq('status', 'published').order('sort_order'),
       supabase
         .from('news')
         .select('*')
         .order('pinned', { ascending: false })
         .order('published_at', { ascending: false }),
-      supabase.from('public_settings').select('disclaimer').single()
+      supabase.from('public_settings').select('disclaimer').single(),
+      supabase
+        .from('accidents')
+        .select('*')
+        .eq('status', 'published')
+        .order('occurred_on', { ascending: false })
     ]);
 
     if (!docResult.error) setDocs(docResult.data as DivingDoc[]);
     if (!newsResult.error) setNews(newsResult.data as NewsItem[]);
     if (!settingsResult.error) setDisclaimer(settingsResult.data?.disclaimer ?? '');
+    if (!accidentResult.error) setAccidents(accidentResult.data as Accident[]);
     setLoading(false);
   }, []);
 
@@ -81,6 +89,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       loading,
       docs,
       news,
+      accidents,
       disclaimer,
       user,
       isBoardMember,
@@ -97,6 +106,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       isBoardMember,
       loading,
       news,
+      accidents,
       refreshPublic,
       refreshSession,
       user

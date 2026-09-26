@@ -7,6 +7,7 @@ import { formatNextDive, relativeDate, selectNextDive } from '../lib/logic';
 import { requireSupabase } from '../lib/supabase';
 import { usePageTitle } from '../lib/pageTitle';
 import type { Thread } from '../types';
+import { AccidentCard } from './AccidentsPage';
 
 function RecentThreads() {
   const { configured, isBoardMember } = useAppData();
@@ -38,26 +39,17 @@ function RecentThreads() {
 
 export function TopPage() {
   usePageTitle('ホーム');
-  const { docs, news, isBoardMember, loading } = useAppData();
+  const { docs, news, accidents, isBoardMember, loading } = useAppData();
   const nextDive = selectNextDive(news);
 
   return (
     <>
       <section className="hero">
-        <p className="kicker">仲間内の安全情報</p>
-        <h1>安全に、気持ちよく潜るために。</h1>
-        <p>潜る前の機材チェックと、仲間どうしの小さな気づきをここに残します。</p>
-        <div className="next-dive">
-          <span className="next-dive-kicker">NEXT DIVE</span>
-          {nextDive ? (
-            <p>
-              <b>{formatNextDive(nextDive.next_dive_at as string)}</b>
-              {nextDive.next_dive_place && <span> ・ {nextDive.next_dive_place}</span>}
-            </p>
-          ) : (
-            <p>次回の予定は未定です。</p>
-          )}
-        </div>
+        <p className="kicker">ダイビング情報の共有サイト</p>
+        <h1>知って潜れば、海はもっと楽しい。</h1>
+        <p className="lead">
+          機材のこと、事故から学べること、仲間の経験。理解を深めて、安全に楽しく潜るための情報をここで共有します。
+        </p>
         <div className="button-row">
           <Link className="button" to="/docs">
             資料を見る
@@ -74,7 +66,19 @@ export function TopPage() {
         </div>
       </section>
 
-      <section>
+      <section className="next-dive">
+        <span className="next-dive-kicker">NEXT DIVE</span>
+        {nextDive ? (
+          <p>
+            <b>{formatNextDive(nextDive.next_dive_at as string)}</b>
+            {nextDive.next_dive_place && <span> ・ {nextDive.next_dive_place}</span>}
+          </p>
+        ) : (
+          <p>次回の予定は未定です。</p>
+        )}
+      </section>
+
+      <section id="news">
         <div className="section-heading">
           <h2>お知らせ</h2>
         </div>
@@ -108,6 +112,20 @@ export function TopPage() {
           ))}
         </div>
       </section>
+
+      {accidents.length > 0 && (
+        <section>
+          <div className="section-heading">
+            <h2>事故事例の新着</h2>
+            <Link to="/accidents">一覧へ</Link>
+          </div>
+          <div className="accident-list compact">
+            {accidents.slice(0, 2).map((accident) => (
+              <AccidentCard accident={accident} key={accident.id} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <section>
         <div className="section-heading">

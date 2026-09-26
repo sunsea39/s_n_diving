@@ -18,7 +18,7 @@ export function MorePage() {
       <p className="kicker">その他</p>
       <h1>このサイトについて</h1>
       <p className="lead">
-        仲間内でダイビングの安全情報や気づきを共有し、事故を未然に防ぐためのページです。
+        ダイビング情報の共有サイト。仲間どうしで知識や経験を共有し、より理解を深めて、安全に楽しく潜れるようにしたい。
       </p>
       <div className="panel form-panel">
         <div className="button-row">

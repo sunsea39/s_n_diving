@@ -1,12 +1,13 @@
 import { createContext, useContext } from 'react';
 import type { User } from '@supabase/supabase-js';
-import type { DivingDoc, NewsItem } from '../types';
+import type { Accident, DivingDoc, NewsItem } from '../types';
 
 export interface AppDataValue {
   configured: boolean;
   loading: boolean;
   docs: DivingDoc[];
   news: NewsItem[];
+  accidents: Accident[];
   disclaimer: string;
   user: User | null;
   isBoardMember: boolean;

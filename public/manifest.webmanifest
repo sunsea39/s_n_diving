@@ -1,11 +1,11 @@
 {
-  "name": "S×N_Diving",
-  "short_name": "S×N_Diving",
+  "name": "N×S_Diving",
+  "short_name": "N×S_Diving",
   "start_url": "/s_n_diving/",
   "display": "standalone",
   "background_color": "#FFFFFF",
-  "theme_color": "#0B3C5D",
+  "theme_color": "#FFFFFF",
   "icons": [
-    { "src": "/s_n_diving/img/mask.png", "sizes": "800x800", "type": "image/png" }
+    { "src": "/s_n_diving/icons/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ]
 }

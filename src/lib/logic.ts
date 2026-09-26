@@ -1,4 +1,15 @@
-import type { EquipmentSection, HiyariFields, NewsItem, Severity } from '../types';
+import type {
+  Accident,
+  AccidentOutcome,
+  Block,
+  DocBody,
+  DivingDoc,
+  EquipmentSection,
+  HiyariFields,
+  LegacyDocBody,
+  NewsItem,
+  Severity
+} from '../types';
 
 export type JoinBoardStatus = 'ok' | 'wrong' | 'locked' | 'not_set';
 
@@ -134,4 +145,100 @@ export function reorder<T>(items: T[], index: number, direction: -1 | 1): T[] {
   const next = [...items];
   [next[index], next[target]] = [next[target], next[index]];
   return next;
+}
+
+export function normalizeDocBody(body: DocBody | LegacyDocBody): DocBody {
+  if ('blocks' in body) return body;
+  const legacy = body as LegacyDocBody;
+  const blocks: Block[] = [];
+  if (legacy.intro) blocks.push({ type: 'text', text: legacy.intro });
+  blocks.push({ type: 'signs', sections: legacy.sections });
+  blocks.push({ type: 'heading', text: '機材を長持ちさせる 3つの習慣' });
+  blocks.push({
+    type: 'cards',
+    columns: 3,
+    items: legacy.habits.map((habit) => ({ title: habit.title, text: habit.text }))
+  });
+  return { intro: '', blocks, disclaimer: legacy.disclaimer };
+}
+
+export function validateBlock(block: Block): string | null {
+  switch (block.type) {
+    case 'heading':
+      return block.text.trim() ? null : '見出しを入力してください。';
+    case 'text':
+      return block.text.trim() ? null : '本文を入力してください。';
+    case 'callout':
+      return block.title.trim() && block.text.trim()
+        ? null
+        : '注意ボックスの見出しと本文を入力してください。';
+    case 'signs':
+      return block.sections.length ? null : '機材セクションを1つ以上追加してください。';
+    case 'cards':
+      return block.items.length && block.items.every((item) => item.title.trim())
+        ? null
+        : 'カードを1つ以上追加し、見出しを入力してください。';
+    case 'steps':
+      return block.items.length && block.items.every((item) => item.title.trim())
+        ? null
+        : '手順を1つ以上追加し、見出しを入力してください。';
+    case 'checklist':
+      return block.title.trim() &&
+        block.items.length &&
+        block.items.every((item) => item.text.trim())
+        ? null
+        : 'チェックリストの見出しと項目を入力してください。';
+    case 'table':
+      return block.headers.length && block.headers.every((header) => header.trim())
+        ? null
+        : '表の見出しを1つ以上入力してください。';
+    case 'image':
+      return block.src.trim() ? null : '画像をアップロードしてください。';
+    case 'qa':
+      return block.items.length && block.items.every((item) => item.q.trim() && item.a.trim())
+        ? null
+        : '質問と回答を1つ以上入力してください。';
+    case 'links':
+      return block.items.length && block.items.every((item) => item.label.trim() && item.url.trim())
+        ? null
+        : 'リンク名と URL を1つ以上入力してください。';
+  }
+}
+
+export const accidentOutcomes: { value: AccidentOutcome; label: string; className: string }[] = [
+  { value: 'fatal', label: '死亡', className: 'fatal' },
+  { value: 'serious', label: '重症', className: 'serious' },
+  { value: 'minor', label: '軽症', className: 'minor' },
+  { value: 'near_miss', label: 'ヒヤリ', className: 'near-miss' }
+];
+
+export function accidentOutcomeMeta(outcome: AccidentOutcome) {
+  return accidentOutcomes.find((item) => item.value === outcome) ?? accidentOutcomes[3];
+}
+
+export function sortAndFilterAccidents(
+  accidents: Accident[],
+  filters: { outcome?: AccidentOutcome | 'all'; tag?: string | 'all' } = {}
+): Accident[] {
+  return accidents
+    .filter(
+      (accident) =>
+        !filters.outcome || filters.outcome === 'all' || accident.outcome === filters.outcome
+    )
+    .filter(
+      (accident) => !filters.tag || filters.tag === 'all' || accident.tags.includes(filters.tag)
+    )
+    .sort((first, second) => {
+      const firstDate = first.occurred_on ?? '';
+      const secondDate = second.occurred_on ?? '';
+      return secondDate.localeCompare(firstDate);
+    });
+}
+
+export function relatedAccidentsForDoc(accidents: Accident[], slug: string) {
+  return accidents.filter((accident) => accident.related_doc_slugs.includes(slug));
+}
+
+export function docBodyForSave(doc: DivingDoc): DocBody {
+  return normalizeDocBody(doc.body);
 }

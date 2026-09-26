@@ -6,12 +6,14 @@ import { AdminDashboardPage } from './AdminDashboardPage';
 import { AdminDocsListPage, AdminDocEditorPage } from './AdminDocsPage';
 import { AdminNewsEditorPage, AdminNewsListPage } from './AdminNewsPage';
 import { AdminSettingsPage } from './AdminSettingsPage';
+import { AdminAccidentEditorPage, AdminAccidentsListPage } from './AdminAccidentsPage';
 
 function AdminLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const entries = [
     ['/admin', '概要'],
     ['/admin/docs', '資料'],
+    ['/admin/accidents', '事故事例'],
     ['/admin/news', 'お知らせ'],
     ['/admin/board', '投稿管理'],
     ['/admin/settings', '設定']
@@ -39,6 +41,9 @@ export function AdminRoutes() {
         <Route path="docs" element={<AdminDocsListPage />} />
         <Route path="docs/new" element={<AdminDocEditorPage />} />
         <Route path="docs/:id" element={<AdminDocEditorPage />} />
+        <Route path="accidents" element={<AdminAccidentsListPage />} />
+        <Route path="accidents/new" element={<AdminAccidentEditorPage />} />
+        <Route path="accidents/:id" element={<AdminAccidentEditorPage />} />
         <Route path="news" element={<AdminNewsListPage />} />
         <Route path="news/new" element={<AdminNewsEditorPage />} />
         <Route path="news/:id" element={<AdminNewsEditorPage />} />
