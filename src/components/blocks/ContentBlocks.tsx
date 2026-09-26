@@ -169,7 +169,9 @@ export function ContentBlock({
           {block.items.map((item, index) => (
             <details key={`${item.q}-${index}`}>
               <summary>{item.q}</summary>
-              <p>{item.a}</p>
+              <div className="qa-answer">
+                <p>{item.a}</p>
+              </div>
             </details>
           ))}
         </div>

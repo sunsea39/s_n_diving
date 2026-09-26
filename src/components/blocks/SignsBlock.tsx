@@ -78,7 +78,7 @@ export function EquipmentPanel({
           {isOpen ? '−' : '+'}
         </span>
       </button>
-      {isOpen && (
+      <div className={'equipment-body-wrap ' + (isOpen ? 'open' : '')}>
         <div className="equipment-body">
           <ul className="sign-list">
             {section.signs.map((sign, index) => (
@@ -96,7 +96,7 @@ export function EquipmentPanel({
             <p>{section.guideline}</p>
           </div>
         </div>
-      )}
+      </div>
     </section>
   );
 }

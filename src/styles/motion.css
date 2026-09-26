@@ -1,0 +1,242 @@
+@keyframes route-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes hs-wave-back {
+  to {
+    transform: translateX(-200px);
+  }
+}
+
+@keyframes hs-wave-front {
+  to {
+    transform: translateX(-240px);
+  }
+}
+
+@keyframes hs-bubbles-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  18%,
+  80% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-28px);
+  }
+}
+
+@keyframes hs-fish-drift {
+  50% {
+    transform: translateX(28px) translateY(-4px);
+  }
+}
+
+@keyframes hs-rays-glow {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes hs-buoy-bob {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.route-main {
+  animation: route-enter 220ms ease-out both;
+}
+
+.card-grid > *,
+.content-card-grid > *,
+.news-list > *,
+.thread-list > *,
+.accident-list > * {
+  animation: card-enter 260ms ease-out both;
+}
+
+.card-grid > :nth-child(2),
+.content-card-grid > :nth-child(2),
+.news-list > :nth-child(2),
+.thread-list > :nth-child(2),
+.accident-list > :nth-child(2) {
+  animation-delay: 40ms;
+}
+
+.card-grid > :nth-child(3),
+.content-card-grid > :nth-child(3),
+.news-list > :nth-child(3),
+.thread-list > :nth-child(3),
+.accident-list > :nth-child(3) {
+  animation-delay: 80ms;
+}
+
+.card-grid > :nth-child(n + 4),
+.content-card-grid > :nth-child(n + 4),
+.news-list > :nth-child(n + 4),
+.thread-list > :nth-child(n + 4),
+.accident-list > :nth-child(n + 4) {
+  animation-delay: 120ms;
+}
+
+.bottom-tabs .tab-icon {
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.menu-icon-line {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform 180ms ease,
+    opacity 180ms ease;
+}
+
+.menu-button[aria-expanded='true'] .menu-icon-line-1 {
+  transform: translateY(5px) rotate(45deg);
+}
+
+.menu-button[aria-expanded='true'] .menu-icon-line-2 {
+  opacity: 0;
+}
+
+.menu-button[aria-expanded='true'] .menu-icon-line-3 {
+  transform: translateY(-5px) rotate(-45deg);
+}
+
+.equipment-body-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  overflow: hidden;
+  transition: grid-template-rows 300ms ease;
+}
+
+.equipment-body-wrap.open {
+  grid-template-rows: 1fr;
+}
+
+.equipment-body {
+  min-height: 0;
+}
+
+.qa-block details {
+  display: grid;
+  grid-template-rows: auto 0fr;
+  transition: grid-template-rows 300ms ease;
+}
+
+.qa-block details[open] {
+  grid-template-rows: auto 1fr;
+}
+
+.qa-answer {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.qa-block details:not([open]) > .qa-answer {
+  display: block;
+}
+
+.hero-scene .hs-waves-back {
+  animation: hs-wave-back 12s linear infinite;
+}
+
+.hero-scene .hs-waves-front {
+  animation: hs-wave-front 18s linear infinite;
+}
+
+.hero-scene .hs-bubbles {
+  animation: hs-bubbles-rise 8s ease-in-out infinite;
+}
+
+.hero-scene .hs-fish-school {
+  animation: hs-fish-drift 10s ease-in-out infinite;
+}
+
+.hero-scene .hs-rays {
+  animation: hs-rays-glow 8s ease-in-out infinite;
+}
+
+.hero-scene .hs-buoy-group {
+  animation: hs-buoy-bob 4s ease-in-out infinite;
+}
+
+.hero-scene[data-animation-state='paused'] .hs-waves-back,
+.hero-scene[data-animation-state='paused'] .hs-waves-front,
+.hero-scene[data-animation-state='paused'] .hs-bubbles,
+.hero-scene[data-animation-state='paused'] .hs-fish-school,
+.hero-scene[data-animation-state='paused'] .hs-rays,
+.hero-scene[data-animation-state='paused'] .hs-buoy-group {
+  animation-play-state: paused;
+}
+
+html.theme-ready,
+html.theme-ready *,
+html.theme-ready *::before,
+html.theme-ready *::after {
+  transition-duration: 200ms;
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+}
+
+@media (hover: hover) {
+  .panel:is(a, button),
+  .button,
+  .button-secondary,
+  .button-danger,
+  .template-choice,
+  .own-actions button,
+  .editor-row button {
+    transition:
+      transform 150ms ease,
+      box-shadow 150ms ease;
+  }
+
+  .panel:is(a, button):hover,
+  .button:hover,
+  .button-secondary:hover,
+  .button-danger:hover,
+  .template-choice:hover,
+  .own-actions button:hover,
+  .editor-row button:hover {
+    box-shadow: 0 5px 14px var(--shadow);
+    transform: translateY(-2px);
+  }
+}
+
+button:active,
+a.button:active,
+a.button-secondary:active,
+a.button-danger:active,
+.bottom-tabs a:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

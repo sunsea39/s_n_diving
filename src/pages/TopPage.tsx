@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { DocCard } from '../components/DocContent';
+import { HeroScene } from '../components/HeroScene';
 import { ThreadRow } from '../components/ThreadRow';
 import { useAppData } from '../context/AppDataContext';
 import { formatNextDive, relativeDate, selectNextDive } from '../lib/logic';
@@ -64,18 +65,18 @@ export function TopPage() {
             </Link>
           )}
         </div>
-      </section>
-
-      <section className="next-dive">
-        <span className="next-dive-kicker">NEXT DIVE</span>
-        {nextDive ? (
-          <p>
-            <b>{formatNextDive(nextDive.next_dive_at as string)}</b>
-            {nextDive.next_dive_place && <span> ・ {nextDive.next_dive_place}</span>}
-          </p>
-        ) : (
-          <p>次回の予定は未定です。</p>
-        )}
+        <HeroScene />
+        <section className="next-dive">
+          <span className="next-dive-kicker">NEXT DIVE</span>
+          {nextDive ? (
+            <p>
+              <b>{formatNextDive(nextDive.next_dive_at as string)}</b>
+              {nextDive.next_dive_place && <span> ・ {nextDive.next_dive_place}</span>}
+            </p>
+          ) : (
+            <p>次回の予定は未定です。</p>
+          )}
+        </section>
       </section>
 
       <section id="news">

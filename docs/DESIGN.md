@@ -1,4 +1,4 @@
-# N×S_Diving 実装仕様 v1.1
+# N×S_Diving 実装仕様 v1.2
 
 ## 1. 概要
 
@@ -7,13 +7,14 @@
 - 技術: Vite / React 18 / TypeScript strict / React Router v6 / Supabase。
 - URL: GitHub Pages の /s_n_diving/。BrowserRouter は import.meta.env.BASE_URL を basename に使う。
 
-## 2. デザイン
+## 2. デザインとテーマ
 
-- ライトテーマ固定。color-scheme: light とし、ダークモード用 prefers-color-scheme は使わない。
-- トークン: navy #0B3C5D、teal #1B998B、ink #4F5B62、red #D64527、amber #D98E04、panel #EEF5F6、line #D5E6EA、field-border #A8C4CC、ground #FFFFFF。
-- ネイビーの面は主ボタン、NEXT DIVE、選択中チップだけ。ヘッダー、フッター、タブバー、ヒーロー、管理メニューは白または panel。
-- 入力欄は白、1.5px の field border、ティールのフォーカスリング。危険度の「● 即中止」の点は常に赤。
-- モバイル優先。600px 未満は下部タブ（ホーム / 資料 / 事故事例 / 掲示板）、1024px 未満は右側ハンバーガードロワー、1024px 以上は横並びナビ。
+- テーマはライト（既定）/ ダーク / 端末に合わせるの 3 種。選択は localStorage の `ns-theme` に保存し、`<html data-theme="light|dark">` と `color-scheme` に反映する。初回描画前の `index.html` スクリプトも同じ規則で適用し、theme-color はライト #FFFFFF、ダーク #0E1A22 とする。
+- ライトの主要トークンは navy #0B3C5D、teal #1B998B、ink #4F5B62、red #D64527、amber #D98E04、panel #EEF5F6、line #D5E6EA、field-border #A8C4CC、ground #FFFFFF。ダークは ground #0E1A22、panel #16252F、panel-2 #1E313D、line #2A3F4C、field-border #4A6473、navy #E6EEF1、ink #B9C6CC、muted #8697A0、teal #3CC2B2、red #F07A5F、amber #F0B23A を使う。
+- 主ボタンは `--button-bg` / `--button-fg`、NEXT DIVE は `--hero-card-bg`、入力欄は `--field-bg` を使う。すべての面、境界線、バッジ、警告色をトークン化し、ダークテーマでもコントラストを確保する。
+- モバイル優先。600px 未満は下部タブ（ホーム / 資料 / 事故事例 / 掲示板）のアイコン＋ラベル、1024px 未満は右側ハンバーガードロワー、1024px 以上は横並びナビとテーマ切替ボタン。ドロワーと `/more` では 3 種のテーマを選択できる。
+- 下部タブは高さ 56px（safe area を加算）。選択中はティール色の 52×28px 相当のピルをアイコンの背面に表示する。アイコンは `src/components/icons.tsx` のインライン SVG（24px、currentColor）を用いる。
+- トップはコピーの下に CSS 変数で着色する `HeroScene` を全幅・角丸 16px で表示し、NEXT DIVE カードを下端へ 28px 重ねる。高さはモバイル 150px、600px 以上 200px、1024px 以上 240px。
 
 ## 3. ルーティング
 
@@ -23,10 +24,10 @@
 | /docs, /docs/:slug | 資料一覧とブロック形式の資料詳細 |
 | /accidents, /accidents/:slug | 事故事例の一覧・詳細 |
 | /board*, /join | 合言葉で保護した掲示板 |
-| /more | このサイトについて、退出とログイン導線 |
+| /more | このサイトについて、テーマ選択、退出とログイン導線 |
 | /admin/* | 管理画面（資料、事故事例、お知らせ、掲示板、設定） |
 
-ヘッダーのドロワーはホーム、資料、事故事例、掲示板、お知らせ、合言葉/退出、サイトについて、管理への導線を持つ。Esc、背景、閉じるボタン、リンク選択、ルート変更で閉じ、開いている間は body のスクロールを停止する。
+ヘッダーのドロワーはアイコン付きでホーム、資料、事故事例、掲示板、お知らせ、合言葉/退出、サイトについて、管理、テーマ選択への導線を持つ。Esc、背景、閉じるボタン、リンク選択、ルート変更で閉じ、開いている間は body のスクロールを停止する。
 
 ## 4. 資料データ
 
@@ -64,6 +65,8 @@ v1.1 migration と seed は再実行安全。seed の事故事例は 【記入�
 
 ## 8. アイコンと品質
 
-public/icons/logo.svg と favicon.svg は差し替え可能な仮コンパス。ヘッダーは 28px の logo.svg を使う。最終 PNG（192 / 512 / apple touch）は支給後に manifest の icons へ追加する。
+public/icons/logo.svg と favicon.svg は差し替え可能な仮コンパス。ヘッダーは 28px の logo.svg を使う。ナビゲーション、ドロワー、テーマ操作は外部ライブラリを使わず `src/components/icons.tsx` の SVG コンポーネントを使う。最終 PNG（192 / 512 / apple touch）は支給後に manifest の icons へ追加する。
+
+`src/styles/motion.css` はルートのフェードイン、カードの 40ms スタガー、ホバー時の 2px リフト、押下時の scale(.97)、タブピル、ハンバーガー、アコーディオン、ヒーローの波・泡・魚・光・ブイを担当する。ヒーローのアニメーションは IntersectionObserver で画面外なら停止し、`prefers-reduced-motion: reduce` ではすべて無効化する。テーマ色の遷移は初回描画後にだけ有効化する。
 
 すべてのページは noindex, nofollow。title は ページ名 | N×S_Diving。
