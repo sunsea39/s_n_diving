@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import seedDocument from '../../supabase/seed/gear-signs.json';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
-import type { Accident, DivingDoc, NewsItem } from '../types';
+import type { Accident, AccountRole, DivingDoc, NewsItem, Profile } from '../types';
 import { AppDataContext } from './AppDataContext';
 
 const fallbackDocs = [seedDocument as DivingDoc];
@@ -14,8 +14,12 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [disclaimer, setDisclaimer] = useState('');
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [role, setRole] = useState<AccountRole | null>(null);
   const [isBoardMember, setIsBoardMember] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isEditor, setIsEditor] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
   const [authChecked, setAuthChecked] = useState(!isSupabaseConfigured);
 
   const refreshPublic = useCallback(async () => {
@@ -59,18 +63,30 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     setUser(currentUser);
 
     if (!currentUser) {
+      setProfile(null);
+      setRole(null);
       setIsBoardMember(false);
       setIsAdmin(false);
+      setIsEditor(false);
+      setIsOwner(false);
       setAuthChecked(true);
       return;
     }
 
-    const [membership, admin] = await Promise.all([
-      supabase.rpc('is_board_member'),
-      supabase.rpc('is_admin')
+    const [profileResult, membership, admin, editor, owner] = await Promise.all([
+      supabase.from('profiles').select('*').eq('id', currentUser.id).maybeSingle(),
+      supabase.rpc('is_member'),
+      supabase.rpc('is_owner'),
+      supabase.rpc('is_editor'),
+      supabase.rpc('is_owner')
     ]);
+    const nextProfile = profileResult.data as Profile | null;
+    setProfile(nextProfile);
+    setRole(nextProfile?.role ?? null);
     setIsBoardMember(Boolean(membership.data) && !membership.error);
     setIsAdmin(Boolean(admin.data) && !admin.error);
+    setIsEditor(Boolean(editor.data) && !editor.error);
+    setIsOwner(Boolean(owner.data) && !owner.error);
     setAuthChecked(true);
   }, []);
 
@@ -92,8 +108,12 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       accidents,
       disclaimer,
       user,
+      profile,
+      role,
       isBoardMember,
       isAdmin,
+      isEditor,
+      isOwner,
       authChecked,
       refreshPublic,
       refreshSession
@@ -104,11 +124,15 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       docs,
       isAdmin,
       isBoardMember,
+      isEditor,
+      isOwner,
       loading,
       news,
+      profile,
       accidents,
       refreshPublic,
       refreshSession,
+      role,
       user
     ]
   );

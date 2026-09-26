@@ -7,7 +7,7 @@ import { useAppData } from '../context/AppDataContext';
 import { formatNextDive, latestDocs, relativeDate, selectNextDive } from '../lib/logic';
 import { requireSupabase } from '../lib/supabase';
 import { usePageTitle } from '../lib/pageTitle';
-import type { Thread } from '../types';
+import type { Profile, Thread } from '../types';
 import { AccidentCard } from './AccidentsPage';
 
 function RecentThreads() {
@@ -21,11 +21,24 @@ function RecentThreads() {
       .select('*')
       .order('last_post_at', { ascending: false })
       .limit(3)
-      .then(({ data }) => setThreads((data ?? []) as Thread[]));
+      .then(async ({ data }) => {
+        const items = (data ?? []) as Thread[];
+        const profiles = await requireSupabase()
+          .from('profiles')
+          .select('id, display_name, avatar_path')
+          .in('id', [...new Set(items.map((item) => item.author_uid))]);
+        const byId = new Map(
+          (profiles.data ?? []).map((item) => [
+            item.id,
+            item as Pick<Profile, 'id' | 'display_name' | 'avatar_path'>
+          ])
+        );
+        setThreads(items.map((item) => ({ ...item, profile: byId.get(item.author_uid) ?? null })));
+      });
   }, [configured, isBoardMember]);
 
   if (!isBoardMember) {
-    return <p className="empty">掲示板は合言葉を入力した仲間だけが見られます。</p>;
+    return <p className="empty">掲示板は承認済みの仲間だけが見られます。</p>;
   }
   return threads.length ? (
     <div className="thread-list">
@@ -61,8 +74,8 @@ export function TopPage() {
               掲示板を見る
             </Link>
           ) : (
-            <Link className="button-secondary" to="/join?next=/board">
-              合言葉を入れて見る
+            <Link className="button-secondary" to="/login?next=/board">
+              ログインして見る
             </Link>
           )}
         </div>
@@ -132,8 +145,8 @@ export function TopPage() {
       <section>
         <div className="section-heading">
           <h2>掲示板の新着</h2>
-          <Link to={isBoardMember ? '/board' : '/join?next=/board'}>
-            {isBoardMember ? '一覧へ' : '合言葉を入れて見る'}
+          <Link to={isBoardMember ? '/board' : '/login?next=/board'}>
+            {isBoardMember ? '一覧へ' : 'ログインして見る'}
           </Link>
         </div>
         <RecentThreads />

@@ -1,5 +1,32 @@
 export type Severity = 'stop' | 'check';
 export type BoardCategory = 'hiyari' | 'plan' | 'gear' | 'chat';
+export type AccountRole = 'pending' | 'member' | 'editor' | 'owner' | 'suspended';
+
+export interface Profile {
+  id: string;
+  role: AccountRole;
+  display_name: string;
+  avatar_path: string | null;
+  bio: string;
+  license: string;
+  dive_count: number | null;
+  favorite_areas: string;
+  created_at: string;
+  approved_at: string | null;
+}
+
+export interface GearNote {
+  id: string;
+  user_id: string;
+  name: string;
+  maker_model: string;
+  purchased_on: string | null;
+  last_service_on: string | null;
+  next_service_on: string | null;
+  memo: string;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface Sign {
   level: Severity;
@@ -92,6 +119,7 @@ export interface Thread {
   hidden: boolean;
   created_at: string;
   updated_at: string;
+  profile?: Pick<Profile, 'id' | 'display_name' | 'avatar_path'> | null;
 }
 
 export interface Post {
@@ -104,6 +132,7 @@ export interface Post {
   hidden: boolean;
   created_at: string;
   updated_at: string;
+  profile?: Pick<Profile, 'id' | 'display_name' | 'avatar_path'> | null;
 }
 
 export type AccidentOutcome = 'fatal' | 'serious' | 'minor' | 'near_miss';

@@ -10,7 +10,7 @@ import type { BoardCategory, HiyariFields } from '../../types';
 export function NewThreadPage() {
   usePageTitle('新規投稿');
   const navigate = useNavigate();
-  const { user } = useAppData();
+  const { user, profile } = useAppData();
   const [category, setCategory] = useState<BoardCategory>('hiyari');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -37,7 +37,7 @@ export function NewThreadPage() {
           body: category === 'hiyari' ? '' : body.trim(),
           hiyari: category === 'hiyari' ? hiyari : null,
           image_path,
-          author_name: localStorage.getItem('sn-diving-name') ?? '名無し',
+          author_name: profile?.display_name ?? '名無し',
           author_uid: user.id
         })
         .select()

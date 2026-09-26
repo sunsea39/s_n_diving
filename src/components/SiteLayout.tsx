@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAppData } from '../context/AppDataContext';
 import { supabase } from '../lib/supabase';
 import { ThemePicker, ThemeToggleButton } from './ThemeControls';
+import { Avatar } from './Avatar';
 import {
   AccidentIcon,
   BoardIcon,
@@ -30,7 +31,7 @@ function Drawer({
   close: () => void;
   trigger: React.RefObject<HTMLButtonElement>;
 }) {
-  const { isAdmin, isBoardMember, refreshSession } = useAppData();
+  const { isEditor, user, refreshSession } = useAppData();
   const location = useLocation();
   const drawer = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -51,11 +52,6 @@ function Drawer({
   useEffect(() => {
     close();
   }, [location.pathname, close]);
-  const leave = async () => {
-    if (supabase) await supabase.auth.signOut();
-    await refreshSession();
-    close();
-  };
   const logout = async () => {
     if (supabase) await supabase.auth.signOut();
     await refreshSession();
@@ -102,37 +98,38 @@ function Drawer({
           </Link>
         </nav>
         <hr />
-        {isBoardMember ? (
-          <button onClick={() => void leave()}>
-            <KeyIcon />
-            掲示板から退出
-          </button>
-        ) : (
-          <Link to="/join" onClick={close}>
-            <KeyIcon />
-            合言葉を入力
-          </Link>
-        )}
         <Link to="/more" onClick={close}>
           <InfoIcon />
           このサイトについて
         </Link>
-        {isAdmin ? (
+        {user ? (
           <>
-            <Link to="/admin" onClick={close}>
-              <LockIcon />
-              管理画面
+            <Link to="/mypage" onClick={close}>
+              <KeyIcon />
+              マイページ
             </Link>
+            {isEditor && (
+              <Link to="/admin" onClick={close}>
+                <LockIcon />
+                管理画面
+              </Link>
+            )}
             <button onClick={() => void logout()}>
               <LockIcon />
               ログアウト
             </button>
           </>
         ) : (
-          <Link to="/admin/login" onClick={close}>
-            <LockIcon />
-            管理者ログイン
-          </Link>
+          <>
+            <Link to="/login" onClick={close}>
+              <LockIcon />
+              ログイン
+            </Link>
+            <Link to="/signup" onClick={close}>
+              <KeyIcon />
+              新規登録
+            </Link>
+          </>
         )}
         <ThemePicker className="drawer-theme-picker" />
       </aside>
@@ -145,6 +142,7 @@ export function SiteLayout() {
   const trigger = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setOpen(false), []);
   const location = useLocation();
+  const { user, profile } = useAppData();
   useEffect(() => {
     const update = () => setScrolled(window.scrollY > 0);
     update();
@@ -172,6 +170,11 @@ export function SiteLayout() {
             <NavLink to="/admin">管理</NavLink>
           </nav>
           <ThemeToggleButton />
+          {user && profile && (
+            <Link className="header-avatar" to="/mypage">
+              <Avatar name={profile.display_name} path={profile.avatar_path} small />
+            </Link>
+          )}
           <button
             ref={trigger}
             className="menu-button"

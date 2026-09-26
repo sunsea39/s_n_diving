@@ -2,17 +2,10 @@ import { Link } from 'react-router-dom';
 import { useAppData } from '../context/AppDataContext';
 import { ThemePicker } from '../components/ThemeControls';
 import { usePageTitle } from '../lib/pageTitle';
-import { supabase } from '../lib/supabase';
 
 export function MorePage() {
   usePageTitle('その他');
-  const { isAdmin, isBoardMember, refreshSession } = useAppData();
-
-  const leaveBoard = async () => {
-    if (!supabase) return;
-    await supabase.auth.signOut();
-    await refreshSession();
-  };
+  const { isEditor, user } = useAppData();
 
   return (
     <>
@@ -24,18 +17,25 @@ export function MorePage() {
       <div className="panel form-panel">
         <ThemePicker className="more-theme-picker" />
         <div className="button-row">
-          {isBoardMember ? (
-            <button className="button-secondary" onClick={() => void leaveBoard()}>
-              掲示板から退出
-            </button>
+          {user ? (
+            <Link className="button" to="/mypage">
+              マイページ
+            </Link>
           ) : (
-            <Link className="button" to="/join">
-              合言葉を入力
+            <Link className="button" to="/login">
+              ログイン
             </Link>
           )}
-          <Link className="button-secondary" to={isAdmin ? '/admin' : '/admin/login'}>
-            {isAdmin ? '管理画面' : '管理者ログイン'}
-          </Link>
+          {!user && (
+            <Link className="button-secondary" to="/signup">
+              新規登録
+            </Link>
+          )}
+          {isEditor && (
+            <Link className="button-secondary" to="/admin">
+              管理画面
+            </Link>
+          )}
         </div>
       </div>
     </>

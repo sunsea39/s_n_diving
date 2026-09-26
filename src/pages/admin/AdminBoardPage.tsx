@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { usePageTitle } from '../../lib/pageTitle';
 import { requireSupabase } from '../../lib/supabase';
+import { ConfirmButton } from '../../components/ConfirmButton';
 import type { Post, Thread } from '../../types';
 
 export function AdminBoardPage() {
@@ -39,7 +40,6 @@ export function AdminBoardPage() {
   };
 
   const remove = async (table: 'threads' | 'posts', id: number) => {
-    if (!window.confirm('この投稿を削除しますか？')) return;
     const result = await requireSupabase().from(table).delete().eq('id', id);
     if (result.error) setError(result.error.message);
     else await load();
@@ -58,7 +58,11 @@ export function AdminBoardPage() {
         <button onClick={() => void toggle(table, item)}>
           {item.hidden ? '再表示' : '非表示'}
         </button>
-        <button onClick={() => void remove(table, item.id)}>削除</button>
+        <ConfirmButton
+          label="削除"
+          message="この投稿を削除しますか？"
+          onConfirm={() => remove(table, item.id)}
+        />
       </div>
     </article>
   );

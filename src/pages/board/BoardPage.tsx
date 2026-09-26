@@ -5,6 +5,7 @@ import { boardCategories } from '../../lib/board';
 import { usePageTitle } from '../../lib/pageTitle';
 import { requireSupabase } from '../../lib/supabase';
 import type { BoardCategory, Thread } from '../../types';
+import type { Profile } from '../../types';
 
 export function BoardPage() {
   usePageTitle('掲示板');
@@ -21,9 +22,20 @@ export function BoardPage() {
       .order('last_post_at', { ascending: false });
     if (category !== 'all') query = query.eq('category', category);
 
-    void query.then(({ data }) => {
+    void query.then(async ({ data }) => {
       if (!active) return;
-      setThreads((data ?? []) as Thread[]);
+      const items = (data ?? []) as Thread[];
+      const profiles = await requireSupabase()
+        .from('profiles')
+        .select('id, display_name, avatar_path')
+        .in('id', [...new Set(items.map((item) => item.author_uid))]);
+      const byId = new Map(
+        (profiles.data ?? []).map((item) => [
+          item.id,
+          item as Pick<Profile, 'id' | 'display_name' | 'avatar_path'>
+        ])
+      );
+      setThreads(items.map((item) => ({ ...item, profile: byId.get(item.author_uid) ?? null })));
       setLoading(false);
     });
 

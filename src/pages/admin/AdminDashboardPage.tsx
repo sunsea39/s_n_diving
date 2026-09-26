@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { usePageTitle } from '../../lib/pageTitle';
 import { requireSupabase } from '../../lib/supabase';
+import { useAppData } from '../../context/AppDataContext';
 
 export function AdminDashboardPage() {
   usePageTitle('管理ダッシュボード');
   const [stats, setStats] = useState({ published: 0, draft: 0, weekPosts: 0 });
+  const { isOwner } = useAppData();
+  const [pending, setPending] = useState(0);
 
   useEffect(() => {
     const client = requireSupabase();
@@ -21,6 +24,17 @@ export function AdminDashboardPage() {
       })
     );
   }, []);
+  useEffect(() => {
+    if (!isOwner) return;
+    void requireSupabase()
+      .rpc('list_members')
+      .then((result) => {
+        if (!result.error)
+          setPending(
+            (result.data ?? []).filter((item: { role: string }) => item.role === 'pending').length
+          );
+      });
+  }, [isOwner]);
 
   return (
     <>
@@ -31,6 +45,12 @@ export function AdminDashboardPage() {
           <span>公開中資料</span>
           <strong>{stats.published}</strong>
         </div>
+        {isOwner && (
+          <div className="panel stat">
+            <span>承認待ち</span>
+            <strong>{pending}</strong>
+          </div>
+        )}
         <div className="panel stat">
           <span>下書き</span>
           <strong>{stats.draft}</strong>

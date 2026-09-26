@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BoardImage } from '../../components/BoardImage';
+import { Avatar } from '../../components/Avatar';
+import { ConfirmButton } from '../../components/ConfirmButton';
 import { useAppData } from '../../context/AppDataContext';
 import { categoryLabel, uploadBoardImage } from '../../lib/board';
 import { relativeDate, validateReply, validateThreadInput } from '../../lib/logic';
 import { usePageTitle } from '../../lib/pageTitle';
 import { requireSupabase } from '../../lib/supabase';
 import { PlainText } from '../../lib/text';
-import type { HiyariFields, Post, Thread } from '../../types';
+import type { HiyariFields, Post, Profile, Thread } from '../../types';
 
 function ThreadBody({ thread }: { thread: Thread }) {
   if (thread.category === 'hiyari' && thread.hiyari) {
@@ -79,7 +81,6 @@ function ThreadOwnerActions({
   };
 
   const remove = async () => {
-    if (!window.confirm('このスレッドと返信を削除しますか？')) return;
     const result = await requireSupabase().from('threads').delete().eq('id', thread.id);
     if (result.error) {
       setError(result.error.message);
@@ -92,7 +93,11 @@ function ThreadOwnerActions({
     return (
       <div className="own-actions">
         <button onClick={() => setEditing(true)}>編集</button>
-        <button onClick={() => void remove()}>削除</button>
+        <ConfirmButton
+          label="削除"
+          message="このスレッドと返信を削除しますか？"
+          onConfirm={remove}
+        />
         {error && <span className="error">{error}</span>}
       </div>
     );
@@ -177,7 +182,6 @@ function PostCard({
   };
 
   const remove = async () => {
-    if (!window.confirm('この返信を削除しますか？')) return;
     const result = await requireSupabase().from('posts').delete().eq('id', post.id);
     if (result.error) setError(result.error.message);
     else await onChange();
@@ -186,7 +190,16 @@ function PostCard({
   return (
     <article className="panel post">
       <div className="post-head">
-        <b>{post.author_name}</b>
+        <span className="author-meta">
+          <Avatar
+            link
+            id={post.profile?.id}
+            name={post.profile?.display_name ?? post.author_name}
+            path={post.profile?.avatar_path}
+            small
+          />
+          <b>{post.profile?.display_name ?? post.author_name}</b>
+        </span>
         <span>{relativeDate(post.created_at)}</span>
       </div>
       {editing ? (
@@ -211,7 +224,7 @@ function PostCard({
           {own && (
             <div className="own-actions">
               <button onClick={() => setEditing(true)}>編集</button>
-              <button onClick={() => void remove()}>削除</button>
+              <ConfirmButton label="削除" message="この返信を削除しますか？" onConfirm={remove} />
             </div>
           )}
         </>
@@ -222,7 +235,7 @@ function PostCard({
 
 export function ThreadPage() {
   const { id } = useParams();
-  const { user } = useAppData();
+  const { user, profile } = useAppData();
   const [thread, setThread] = useState<Thread | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [reply, setReply] = useState('');
@@ -245,8 +258,25 @@ export function ThreadPage() {
         .eq('thread_id', id as string)
         .order('created_at')
     ]);
-    if (!threadResult.error) setThread(threadResult.data as Thread);
-    if (!postResult.error) setPosts(postResult.data as Post[]);
+    const nextThread = threadResult.data as Thread | null;
+    const nextPosts = (postResult.data ?? []) as Post[];
+    const ids = [
+      ...new Set(
+        [nextThread?.author_uid, ...nextPosts.map((post) => post.author_uid)].filter(Boolean)
+      )
+    ] as string[];
+    const profiles = await client
+      .from('profiles')
+      .select('id, display_name, avatar_path')
+      .in('id', ids);
+    const byId = new Map(
+      (profiles.data ?? []).map((item) => [
+        item.id,
+        item as Pick<Profile, 'id' | 'display_name' | 'avatar_path'>
+      ])
+    );
+    if (nextThread) setThread({ ...nextThread, profile: byId.get(nextThread.author_uid) ?? null });
+    setPosts(nextPosts.map((post) => ({ ...post, profile: byId.get(post.author_uid) ?? null })));
   }, [id]);
 
   useEffect(() => {
@@ -269,7 +299,7 @@ export function ThreadPage() {
           thread_id: thread.id,
           body: reply.trim(),
           image_path,
-          author_name: localStorage.getItem('sn-diving-name') ?? '名無し',
+          author_name: profile?.display_name ?? '名無し',
           author_uid: user.id
         });
       if (result.error) throw result.error;
@@ -291,7 +321,17 @@ export function ThreadPage() {
         <span className={`category ${thread.category}`}>{categoryLabel(thread.category)}</span>
         <h1>{thread.title}</h1>
         <p className="meta">
-          {thread.author_name} ・ {new Date(thread.created_at).toLocaleString('ja-JP')}
+          <span className="author-meta">
+            <Avatar
+              link
+              id={thread.profile?.id}
+              name={thread.profile?.display_name ?? thread.author_name}
+              path={thread.profile?.avatar_path}
+              small
+            />
+            {thread.profile?.display_name ?? thread.author_name}
+          </span>{' '}
+          ・ {new Date(thread.created_at).toLocaleString('ja-JP')}
         </p>
         <ThreadBody thread={thread} />
         <BoardImage path={thread.image_path} />

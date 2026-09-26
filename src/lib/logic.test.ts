@@ -15,7 +15,12 @@ import {
   accidentOutcomeMeta,
   validateDisplayName,
   validateThreadInput,
-  groupDocsByCategory
+  groupDocsByCategory,
+  avatarColor,
+  avatarCropDimensions,
+  safeNext,
+  serviceBadge,
+  adminMenuForRole
 } from './logic';
 import type { Accident, DivingDoc, EquipmentSection, NewsItem } from '../types';
 import { InlineBold } from '../components/InlineBold';
@@ -51,6 +56,39 @@ describe('入力検証', () => {
     expect(validateDisplayName('')).toBeTruthy();
     expect(validateDisplayName('海子')).toBeNull();
     expect(validateThreadInput({ title: '題', body: '', category: 'hiyari' })).toBeTruthy();
+  });
+});
+
+describe('個人アカウント', () => {
+  it('役割に応じた管理メニューを返す', () => {
+    expect(adminMenuForRole('editor')).toEqual(['概要', 'お知らせ', '投稿管理']);
+    expect(adminMenuForRole('owner')).toContain('メンバー');
+    expect(adminMenuForRole('member')).toEqual([]);
+  });
+  it('許可した戻り先だけを受け付ける', () => {
+    expect(safeNext('/board/1')).toBe('/board/1');
+    expect(safeNext('/mypage?tab=gear')).toBe('/mypage?tab=gear');
+    expect(safeNext('https://example.com')).toBe('/board');
+    expect(safeNext('/docs')).toBe('/board');
+  });
+  it('中央正方形のアイコン切り抜きサイズを返す', () => {
+    expect(avatarCropDimensions(1200, 800)).toEqual({
+      sourceX: 200,
+      sourceY: 0,
+      sourceSize: 800,
+      width: 512,
+      height: 512
+    });
+  });
+  it('点検期限のバッジを判定する', () => {
+    const today = new Date('2026-09-26T12:00:00');
+    expect(serviceBadge('2026-09-25', today)).toBe('overdue');
+    expect(serviceBadge('2026-10-26', today)).toBe('soon');
+    expect(serviceBadge('2026-11-01', today)).toBeNull();
+  });
+  it('頭文字アイコンの色は名前ごとに安定する', () => {
+    expect(avatarColor('海子')).toBe(avatarColor('海子'));
+    expect(avatarColor('海子')).not.toBe('');
   });
 });
 

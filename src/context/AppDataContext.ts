@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 import type { User } from '@supabase/supabase-js';
-import type { Accident, DivingDoc, NewsItem } from '../types';
+import type { Accident, AccountRole, DivingDoc, NewsItem, Profile } from '../types';
 
 export interface AppDataValue {
   configured: boolean;
@@ -10,8 +10,12 @@ export interface AppDataValue {
   accidents: Accident[];
   disclaimer: string;
   user: User | null;
+  profile: Profile | null;
+  role: AccountRole | null;
   isBoardMember: boolean;
   isAdmin: boolean;
+  isEditor: boolean;
+  isOwner: boolean;
   authChecked: boolean;
   refreshPublic: () => Promise<void>;
   refreshSession: () => Promise<void>;

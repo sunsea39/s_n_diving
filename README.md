@@ -9,15 +9,15 @@
 ## 初回セットアップ
 
 1. 専用 GitHub アカウントで `s_n_diving` リポジトリを作成して push し、Pages の Source を「GitHub Actions」に設定します。
-2. Supabase プロジェクトを作成します。Authentication で **Anonymous sign-ins** を有効にし、SQL Editor で `supabase/migrations/20260924000000_phase1.sql`、続けて `supabase/migrations/20260926000000_accidents_and_blocks.sql`、最後に `supabase/seed.sql` を実行します。v1.1 の migration と seed は再実行しても安全です。`node scripts/generate-seed.mjs` で JSON から seed SQL を再生成できます。
-3. ダイビング入門の資料を登録する場合は、ローカルの `private/manual/manual-seed.sql` を SQL Editor で実行します。この資料本文は公開リポジトリには含めません。`node scripts/generate-manual-seed.mjs` で `private/manual/*.json` から SQL を再生成できます。
-4. 最初の管理者を Supabase で招待し、招待を受けたユーザーの UUID を使って SQL Editor で `insert into public.admins (user_id, display_name, role) values ('UUID', '表示名', 'owner');` を実行します。
-5. 管理者としてログイン後、管理画面の「設定」で最初の合言葉を設定します。SQL から設定する場合も、管理者としてログインしたセッションで `select public.set_passcode('合言葉');` を実行します。合言葉を変えると掲示板メンバーは再入力が必要です。
+2. Supabase プロジェクトを作成します。SQL Editor で `supabase/migrations/20260924000000_phase1.sql`、`supabase/migrations/20260926000000_accidents_and_blocks.sql`、`supabase/migrations/20260927000000_accounts.sql`、最後に `supabase/seed.sql` をこの順で実行します。migration は既存 DB への追加・再実行に対応しています。`node scripts/generate-seed.mjs` で JSON から seed SQL を再生成できます。
+3. Authentication → Providers → Email で **Confirm email を OFF** にし、Authentication → Providers で **Anonymous sign-ins を OFF** にします。
+4. ダイビング入門の資料を登録する場合は、ローカルの `private/manual/manual-seed.sql` を SQL Editor で実行します。この資料本文は公開リポジトリには含めません。
+5. 最初の管理者は既存の `admins` 行から migration が owner に移行します。新規サイトでは最初の登録後、SQL Editor で対象の `profiles.role` を `owner` に設定してください。以後の承認・権限変更は `/admin/members` で行います。権限の正本は `profiles.role` です。
 6. GitHub リポジトリの Secrets に `VITE_SUPABASE_URL` と `VITE_SUPABASE_ANON_KEY` を設定します。
 7. ローカル開発では `.env.example` を参考に `.env` を作成し、`npm install`、`npm run dev` を実行します。
 8. デプロイ後、仲間に `https://<専用GitHubアカウント>.github.io/s_n_diving/` を送ります。URL は仲間内だけで扱ってください。
 
-合言葉は **8文字以上** を推奨します。匿名サインインの作成頻度も抑えたい場合は、Supabase Dashboard の **Authentication → Rate Limits** で匿名サインインのレート制限を厳しくしてください。
+掲示板は、メール＋パスワードで登録したアカウントを owner が承認する方式です。合言葉と匿名サインインは使いません。
 
 ## 開発コマンド
 
@@ -34,8 +34,13 @@ npm run build
 
 ## セキュリティに関するメモ
 
-- 匿名サインインも Postgres では `authenticated` ロールです。管理者権限は必ず `public.is_admin()` の結果で判定します。
-- `settings.passcode_hash` に直接 SELECT を許可していません。クライアントに返すのは公開用の注意書きだけです。
-- 掲示板画像は非公開 Storage バケットに保存し、表示時に signed URL を使います。
-- `join_board` RPC は `ok`（参加成功）、`wrong`（合言葉違い）、`locked`（試行回数上限）、`not_set`（合言葉未設定）を返します。`wrong` の記録はトランザクション内で確定するため、10分間の個人・全体ロックアウトが有効です。
+- 権限は DB の `is_owner()` / `is_editor()` / `is_member()` で判定し、画面表示だけには依存しません。`is_admin()` は owner と同義です。
+- `profiles` は本人の編集可能列を DB の列単位 GRANT で制限します。メール一覧は owner 専用 RPC からのみ取得します。
+- 掲示板画像は非公開、アバターは公開 Storage バケットです。アバターは本人のフォルダだけを変更できます。
 - 事故事例は報道・公的報告書をそのまま転載せず、自分の言葉で要約して必ず出典をリンクしてください。当事者の氏名や個人を特定できる情報は掲載しません。
+
+## 料金・運用メモ
+
+- Supabase 無料プランの目安は月間アクティブユーザー 50,000 人、DB 500 MB、ファイル 1 GB、転送量 5 GB/月です。仲間内の規模では通常この範囲に収まります。
+- アイコンは 512px、掲示板画像は 1600px に縮小して保存します。無料プランは上限を超えても自動課金されず、有料化は手動です。
+- 標準メール送信は使いません。将来メール再設定を追加する場合は Gmail などの SMTP を設定できます。

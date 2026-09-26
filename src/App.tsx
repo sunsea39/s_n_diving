@@ -14,6 +14,9 @@ import { MorePage } from './pages/MorePage';
 import { NewsDetailPage } from './pages/NewsDetailPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { TopPage } from './pages/TopPage';
+import { LoginPage, PendingPage, SignupPage, SuspendedPage } from './pages/AuthPages';
+import { MemberPage } from './pages/MemberPage';
+import { MyPage } from './pages/MyPage';
 import { AdminRoutes } from './pages/admin/AdminRoutes';
 import { BoardPage } from './pages/board/BoardPage';
 import { NewThreadPage } from './pages/board/NewThreadPage';
@@ -33,7 +36,20 @@ export default function App() {
           <Route path="/accidents/:slug" element={<AccidentDetailPage />} />
           <Route path="/news/:id" element={<NewsDetailPage />} />
           <Route path="/join" element={<JoinPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/pending" element={<PendingPage />} />
+          <Route path="/suspended" element={<SuspendedPage />} />
           <Route path="/more" element={<MorePage />} />
+          <Route path="/mypage" element={<MyPage />} />
+          <Route
+            path="/members/:id"
+            element={
+              <BoardGuard>
+                <MemberPage />
+              </BoardGuard>
+            }
+          />
           <Route
             path="/board"
             element={

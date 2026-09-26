@@ -1,4 +1,4 @@
-# N×S_Diving 実装仕様 v1.4
+# N×S_Diving 実装仕様 v2.0
 
 ## 1. 概要
 
@@ -24,11 +24,12 @@
 | / | ヒーロー、NEXT DIVE、お知らせ、資料、事故事例新着、掲示板新着 |
 | /docs, /docs/:slug, /docs/:slug/print | 資料一覧、ブロック形式の資料詳細、印刷専用ページ |
 | /accidents, /accidents/:slug, /accidents/:slug/print | 事故事例の一覧・詳細、A4 全文の印刷専用ページ |
-| /board*, /join | 合言葉で保護した掲示板 |
+| /board*, /members/:id | 承認済みメンバーだけの掲示板と仲間プロフィール |
+| /signup, /login, /pending, /suspended, /mypage | 個人アカウント、承認待ち、利用停止、マイページ |
 | /more | このサイトについて、テーマ選択、退出とログイン導線 |
 | /admin/* | 管理画面（資料、事故事例、お知らせ、掲示板、設定） |
 
-ヘッダーのドロワーはアイコン付きでホーム、資料、事故事例、掲示板、お知らせ、合言葉/退出、サイトについて、管理、テーマ選択への導線を持つ。Esc、背景、閉じるボタン、リンク選択、ルート変更で閉じ、開いている間は body のスクロールを停止する。
+ヘッダーのドロワーはログイン状態に応じてログイン/新規登録またはマイページ/ログアウトを示す。editor/owner は管理画面も表示する。ログイン中はヘッダーに 28px のアバターを表示する。
 
 ## 4. 資料データ
 
@@ -53,10 +54,14 @@ accidents は slug、タイトル、発生日/表示用時期、場所、スタ�
 - 一覧は結果・タグで絞り込み、発生日が新しい順。詳細は事実、経過、原因、防止ポイント、関連資料、出典、注意書きを表示する。
 - 事故事例は本人の言葉で要約し、出典リンクを必須とする。氏名など個人を特定できる情報は扱わない。
 
-## 6. セキュリティと設定
+## 6. 個人アカウント、セキュリティと設定
 
-- 匿名サインインも authenticated であるため、管理者権限は必ず public.is_admin() で判定する。
-- settings.passcode_hash はクライアントに公開しない。設定画面は admin-only の passcode_is_set() で未設定だけを確認する。
+- `profiles.role` は pending/member/editor/owner/suspended。新規の非匿名 auth user は trigger により pending で作られ、owner が `set_member_role` RPC で承認・権限変更する。最後の owner の降格・停止と自分自身の role 変更は DB で拒否する。
+- member は掲示板、editor はお知らせと投稿管理、owner は資料・事故事例・設定・メンバー管理を含む全権限を持つ。画面のガードに加え、RLS と security-definer 判定関数で強制する。
+- profiles の公開範囲は本人、承認済み会員、owner で異なる。gear_notes は本人専用。avatars は public read かつ本人フォルダのみ書き換え可能。
+- `/mypage` はプロフィール、経験、自分の投稿、機材メモ、アカウントをタブで表示する。アイコンは中央正方形に切り抜き 512px JPEG に縮小する。
+
+- Authentication の Confirm email と Anonymous sign-ins は OFF にする。
 - settings の公開値は public_settings の disclaimer のみ。
 - docs-images は public read、admin write。board-images は非公開で、既存の owner 比較は auth.uid()::text を使う。
 - threads/posts の列単位 UPDATE grants は Phase 1 のまま維持する。
@@ -65,7 +70,8 @@ accidents は slug、タイトル、発生日/表示用時期、場所、スタ�
 
 1. 初回は supabase/migrations/20260924000000_phase1.sql。
 2. v1.1 は supabase/migrations/20260926000000_accidents_and_blocks.sql。
-3. node scripts/generate-seed.mjs で生成した supabase/seed.sql。
+3. v2.0 は supabase/migrations/20260927000000_accounts.sql。
+4. node scripts/generate-seed.mjs で生成した supabase/seed.sql。
 
 v1.1 migration と seed は再実行安全。seed の事故事例は 【記入例・架空】 と明示した draft だけで、公開しない。
 

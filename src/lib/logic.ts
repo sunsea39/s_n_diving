@@ -10,6 +10,7 @@ import type {
   NewsItem,
   Severity
 } from '../types';
+import type { AccountRole } from '../types';
 
 export type JoinBoardStatus = 'ok' | 'wrong' | 'locked' | 'not_set';
 
@@ -45,6 +46,51 @@ export function validateDisplayName(value: string): string | null {
 export function validatePasscode(value: string): string | null {
   if (value.length < 8) return '合言葉は8文字以上で入力してください。';
   return null;
+}
+
+export function safeNext(value: string | null): string {
+  return value && /^\/(?:board|mypage|admin)(?:[/?#]|$)/.test(value) ? value : '/board';
+}
+
+export function adminMenuForRole(role: AccountRole | null): string[] {
+  if (role === 'owner')
+    return ['概要', 'お知らせ', '投稿管理', '資料', '事故事例', 'メンバー', '設定'];
+  if (role === 'editor') return ['概要', 'お知らせ', '投稿管理'];
+  return [];
+}
+
+export function avatarColor(name: string): string {
+  const colors = ['#0b3c5d', '#1b998b', '#6d5d9b', '#bd6b32', '#b14b5b', '#46795b'];
+  const code = [...name.trim()].reduce((total, char) => total + char.codePointAt(0)!, 0);
+  return colors[code % colors.length];
+}
+
+export function avatarInitial(name: string): string {
+  return [...name.trim()][0] ?? '?';
+}
+
+export function avatarCropDimensions(width: number, height: number, size = 512) {
+  if (width <= 0 || height <= 0 || size <= 0) throw new Error('画像サイズが不正です');
+  const side = Math.min(width, height);
+  return {
+    sourceX: Math.floor((width - side) / 2),
+    sourceY: Math.floor((height - side) / 2),
+    sourceSize: side,
+    width: size,
+    height: size
+  };
+}
+
+export function serviceBadge(
+  nextServiceOn: string | null,
+  now = new Date()
+): 'overdue' | 'soon' | null {
+  if (!nextServiceOn) return null;
+  const date = new Date(`${nextServiceOn}T00:00:00`);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diff = Math.ceil((date.getTime() - today.getTime()) / 86400000);
+  if (diff < 0) return 'overdue';
+  return diff <= 30 ? 'soon' : null;
 }
 
 export function validateThreadInput(input: {
