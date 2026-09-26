@@ -1,4 +1,4 @@
-# N×S_Diving 実装仕様 v2.0
+# N×S_Diving 実装仕様 v2.1
 
 ## 1. 概要
 
@@ -77,9 +77,11 @@ v1.1 migration と seed は再実行安全。seed の事故事例は 【記入�
 
 ## 8. アイコンと品質
 
-public/icons/logo.svg と favicon.svg は差し替え可能な仮コンパス。ヘッダーは 28px の logo.svg を使う。ナビゲーション、ドロワー、テーマ操作は外部ライブラリを使わず `src/components/icons.tsx` の SVG コンポーネントを使う。最終 PNG（192 / 512 / apple touch）は支給後に manifest の icons へ追加する。
+最終アイコンは `public/icons/` の `logo.svg`、`favicon.svg`、`icon.svg`、`icon-192.png`、`icon-512.png`、`maskable-512.png`、`apple-touch-icon.png` を使用する。ヘッダーと印刷カードは同じ `logo.svg` を参照し、`index.html` は Vite の `/s_n_diving/` base パスで favicon と Apple touch icon を参照する。manifest には PNG の 192 / 512 を `any`、maskable-512 を `maskable` として登録する。アイコンを更新するときは同じファイル名・用途・サイズを保って `public/icons/` の該当ファイルだけを置き換える。
 
-`src/styles/motion.css` は `:root` のモーショントークンを唯一の時間定義とする。ドロワー 420ms（専用イージング）、幕 360ms、メニューアイコン 320ms、ページ遷移 420ms、カード 560ms、スタガー 90ms（8枚目で上限）、波 22/32秒、泡 8〜12秒、魚 16秒、光 10秒、ブイ 6.5秒である。ホバー 150ms と押下 80ms は操作の応答性のため維持する。機材のアコーディオンは outer grid の `0fr/1fr` と、`min-height: 0; overflow: hidden` の単一 inner clip を使い、閉じた内容を inert・非表示にする。Q&A も同じ grid/clip 構造にする。ヒーローのアニメーションは IntersectionObserver で画面外なら停止し、`prefers-reduced-motion: reduce` ではすべて無効化する。テーマ色の遷移は初回描画後にだけ有効化する。
+フッターは `FooterScene.tsx` の原画 SVG と、直下に続く `--ft-sand` の文字帯で構成する。原画を更新する場合は図形と座標を維持したまま `FooterScene.tsx` の SVG を差し替え、`ft-*` class の色は `styles.css` の `--ft-*` トークンで指定する。画像帯は 110 / 140 / 170px、文字帯はモバイルの下部タブと safe area を含む余白を取り、アニメーションは `motion.css` のトークン、reduced motion、IntersectionObserver に従う。
+
+`src/styles/motion.css` は `:root` のモーショントークンを唯一の時間定義とする。ドロワー 420ms（専用イージング）、幕 360ms、メニューアイコン 320ms、ページ遷移 420ms、カード 560ms、スタガー 90ms（8枚目で上限）、波 22/32秒、泡 8〜12秒、魚 16秒、光 10秒、ブイ 6.5秒に加え、フッターの魚は 18 / 22秒、海藻は 7秒、泡は 9〜12秒、光は 11秒である。ホバー 150ms と押下 80ms は操作の応答性のため維持する。機材のアコーディオンは outer grid の `0fr/1fr` と、`min-height: 0; overflow: hidden` の単一 inner clip を使い、閉じた内容を inert・非表示にする。Q&A も同じ grid/clip 構造にする。ヒーローとフッターのアニメーションは IntersectionObserver で画面外なら停止し、`prefers-reduced-motion: reduce` ではすべて無効化する。テーマ色の遷移は初回描画後にだけ有効化する。
 
 ## 9. PDF・印刷
 

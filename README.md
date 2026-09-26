@@ -4,6 +4,8 @@
 
 表示テーマはライト（既定）・ダーク・端末に合わせるから選べ、設定はこのブラウザに保存されます。
 
+アイコンは `public/icons/` の最終ファイルをそのまま使い、同じ名前・用途（favicon、Apple touch icon、manifest の any / maskable）を保って置き換えます。フッターのサンゴ礁は `src/components/FooterScene.tsx` の SVG と砂色の文字帯で構成しており、原画を差し替える際は図形・座標と `ft-*` class を維持し、テーマ色は `src/styles.css` の `--ft-*` CSS 変数で更新してください。
+
 資料詳細では「PDF・印刷」から、ブラウザの印刷機能を使って検索可能な PDF を保存できます。カード（A6/A7、A4 タイルまたは単票、要点のみ／本文つき）と A4 全文を選べ、設定は localStorage の `ns-print` に保存されます。事故事例は A4 全文で印刷できます。
 
 ## 初回セットアップ

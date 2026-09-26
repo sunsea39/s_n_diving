@@ -22,6 +22,16 @@
   --motion-fish: 16s;
   --motion-rays: 10s;
   --motion-buoy: 6.5s;
+  --motion-footer-fish-a: 18s;
+  --motion-footer-fish-b: 22s;
+  --motion-footer-weed: 7s;
+  --motion-footer-weed-delay: 1.5s;
+  --motion-footer-bubble-1: 9s;
+  --motion-footer-bubble-2: 10s;
+  --motion-footer-bubble-3: 11s;
+  --motion-footer-bubble-4: 12s;
+  --motion-footer-bubble-5: 10s;
+  --motion-footer-rays: 11s;
   --motion-none: 0s;
   --motion-reduced: 0.01ms;
 }
@@ -84,6 +94,67 @@
 @keyframes hs-buoy-bob {
   50% {
     transform: translateY(-3px);
+  }
+}
+
+@keyframes ft-fish-drift-a {
+  0%,
+  100% {
+    transform: translateX(-14px);
+  }
+
+  50% {
+    transform: translateX(14px);
+  }
+}
+
+@keyframes ft-fish-drift-b {
+  0%,
+  100% {
+    transform: translateX(10px);
+  }
+
+  50% {
+    transform: translateX(-10px);
+  }
+}
+
+@keyframes ft-weed-sway {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+
+  50% {
+    transform: rotate(4deg);
+  }
+}
+
+@keyframes ft-bubble-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+
+  18%,
+  80% {
+    opacity: var(--ft-bubble-opacity);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ft-rays-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
   }
 }
 
@@ -277,6 +348,81 @@
   animation-play-state: paused;
 }
 
+.footer-scene .ft-fish-school {
+  transform-box: view-box;
+  transform-origin: center;
+}
+
+.footer-scene .ft-fish-school--a {
+  animation: ft-fish-drift-a var(--motion-footer-fish-a) ease-in-out infinite;
+}
+
+.footer-scene .ft-fish-school--b {
+  animation: ft-fish-drift-b var(--motion-footer-fish-b) ease-in-out infinite;
+}
+
+.footer-scene .ft-weed {
+  transform-box: view-box;
+  animation: ft-weed-sway var(--motion-footer-weed) ease-in-out infinite;
+}
+
+.footer-scene .ft-weed-group--a .ft-weed:nth-child(1) {
+  transform-origin: 620px 206px;
+}
+
+.footer-scene .ft-weed-group--a .ft-weed:nth-child(2) {
+  transform-origin: 646px 208px;
+}
+
+.footer-scene .ft-weed-group--b .ft-weed {
+  animation-delay: var(--motion-footer-weed-delay);
+}
+
+.footer-scene .ft-weed-group--b .ft-weed:nth-child(1) {
+  transform-origin: 1110px 204px;
+}
+
+.footer-scene .ft-weed-group--b .ft-weed:nth-child(2) {
+  transform-origin: 60px 206px;
+}
+
+.footer-scene .ft-bubble {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ft-bubble-rise var(--motion-footer-bubble-1) ease-in-out infinite;
+}
+
+.footer-scene .ft-bubble:nth-child(2) {
+  animation-delay: -2s;
+  animation-duration: var(--motion-footer-bubble-2);
+}
+
+.footer-scene .ft-bubble:nth-child(3) {
+  animation-delay: -4s;
+  animation-duration: var(--motion-footer-bubble-3);
+}
+
+.footer-scene .ft-bubble:nth-child(4) {
+  animation-delay: -6s;
+  animation-duration: var(--motion-footer-bubble-4);
+}
+
+.footer-scene .ft-bubble:nth-child(5) {
+  animation-delay: -8s;
+  animation-duration: var(--motion-footer-bubble-5);
+}
+
+.footer-scene .ft-rays {
+  animation: ft-rays-pulse var(--motion-footer-rays) ease-in-out infinite;
+}
+
+.footer-scene[data-animation-state='paused'] .ft-fish-school,
+.footer-scene[data-animation-state='paused'] .ft-weed,
+.footer-scene[data-animation-state='paused'] .ft-bubble,
+.footer-scene[data-animation-state='paused'] .ft-rays {
+  animation-play-state: paused;
+}
+
 html.theme-ready,
 html.theme-ready *,
 html.theme-ready *::before,
@@ -327,5 +473,12 @@ a.button-danger:active,
     animation-duration: var(--motion-reduced) !important;
     animation-iteration-count: 1 !important;
     transition-duration: var(--motion-reduced) !important;
+  }
+
+  .footer-scene .ft-fish-school,
+  .footer-scene .ft-weed,
+  .footer-scene .ft-bubble,
+  .footer-scene .ft-rays {
+    animation: none !important;
   }
 }

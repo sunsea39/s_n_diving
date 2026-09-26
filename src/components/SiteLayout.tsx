@@ -4,6 +4,7 @@ import { useAppData } from '../context/AppDataContext';
 import { supabase } from '../lib/supabase';
 import { ThemePicker, ThemeToggleButton } from './ThemeControls';
 import { Avatar } from './Avatar';
+import { FooterScene } from './FooterScene';
 import {
   AccidentIcon,
   BoardIcon,
@@ -193,7 +194,13 @@ export function SiteLayout() {
         <Outlet />
       </main>
       <footer className="site-footer">
-        <div className="footer-inner">N×S_Diving ・ ダイビング情報の共有サイト</div>
+        <FooterScene />
+        <div className="footer-text-band">
+          <div className="footer-inner">
+            <strong>N×S_Diving ・ ダイビング情報の共有サイト</strong>
+            <span>仲間内専用ページです</span>
+          </div>
+        </div>
       </footer>
       <nav className="bottom-tabs" aria-label="モバイルメニュー">
         <NavLink to="/" end>
