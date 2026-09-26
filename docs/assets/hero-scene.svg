@@ -1,0 +1,100 @@
+<!--
+  N×S_Diving トップページのヒーロー画像（原画）。
+  React コンポーネント化するときは class 名をそのまま使い、色は CSS 変数で与える（SPEC_1_2 §3）。
+  ライト表示時の参考色を <style> に入れてあるので、このファイル単体でもブラウザで確認できる。
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" preserveAspectRatio="xMidYMid slice" role="img" aria-label="海面にダイバーズフラッグのブイが浮かび、海中を魚と泡がただよう様子">
+  <style>
+    .hs-sky{fill:#EEF5F6}
+    .hs-sun{fill:#F3C969}
+    .hs-sea-top{stop-color:#1B998B}
+    .hs-sea-mid{stop-color:#15717A}
+    .hs-sea-deep{stop-color:#0B3C5D}
+    .hs-wave-back{fill:#7FC9BF}
+    .hs-ray{fill:#FFFFFF;opacity:.10}
+    .hs-bubble{fill:none;stroke:#FFFFFF;stroke-width:2;opacity:.75}
+    .hs-fish{fill:#D5E6EA}
+    .hs-fish-accent{fill:#F3C969}
+    .hs-rock{fill:#0A2F48}
+    .hs-coral{fill:none;stroke:#D98E04;stroke-width:7;stroke-linecap:round}
+    .hs-coral-2{fill:#D64527;opacity:.85}
+    .hs-weed{fill:none;stroke:#1B998B;stroke-width:5;stroke-linecap:round}
+    .hs-buoy{fill:#FFFFFF}
+    .hs-flag{fill:#D64527}
+    .hs-flag-stripe{fill:#FFFFFF}
+    .hs-pole{stroke:#4F5B62;stroke-width:3}
+  </style>
+  <defs>
+    <linearGradient id="hs-sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" class="hs-sea-top"/>
+      <stop offset="0.55" class="hs-sea-mid"/>
+      <stop offset="1" class="hs-sea-deep"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 空と太陽 -->
+  <rect class="hs-sky" x="0" y="0" width="1200" height="120"/>
+  <circle class="hs-sun" cx="960" cy="64" r="34"/>
+
+  <!-- 海（奥の波 → 手前の海） -->
+  <g class="hs-waves-back">
+    <path class="hs-wave-back" d="M0 104 Q50 90 100 104 T200 104 T300 104 T400 104 T500 104 T600 104 T700 104 T800 104 T900 104 T1000 104 T1100 104 T1200 104 T1300 104 T1400 104 V140 H0 Z"/>
+  </g>
+  <g class="hs-waves-front">
+    <path fill="url(#hs-sea)" d="M0 112 Q60 98 120 112 T240 112 T360 112 T480 112 T600 112 T720 112 T840 112 T960 112 T1080 112 T1200 112 T1320 112 T1440 112 V360 H0 Z"/>
+  </g>
+
+  <!-- 差し込む光 -->
+  <g class="hs-rays">
+    <polygon class="hs-ray" points="880,112 940,112 760,360 620,360"/>
+    <polygon class="hs-ray" points="980,112 1010,112 930,360 850,360"/>
+    <polygon class="hs-ray" points="1040,112 1060,112 1110,360 1050,360"/>
+  </g>
+
+  <!-- ダイバーズフラッグ付きのブイ（赤地に白の斜線 = 下にダイバーがいる合図） -->
+  <g class="hs-buoy-group">
+    <line class="hs-pole" x1="236" y1="54" x2="236" y2="104"/>
+    <rect class="hs-flag" x="238" y="54" width="44" height="30" rx="2"/>
+    <polygon class="hs-flag-stripe" points="238,54 247,54 282,78 282,84 273,84 238,60"/>
+    <ellipse class="hs-buoy" cx="236" cy="108" rx="20" ry="9"/>
+  </g>
+
+  <!-- 魚の群れ -->
+  <g class="hs-fish-school">
+    <g transform="translate(420 190)">
+      <path class="hs-fish" d="M0 0 C14 -12 38 -12 50 0 C38 12 14 12 0 0 Z M50 0 L64 -10 L64 10 Z"/>
+    </g>
+    <g transform="translate(486 214) scale(.8)">
+      <path class="hs-fish" d="M0 0 C14 -12 38 -12 50 0 C38 12 14 12 0 0 Z M50 0 L64 -10 L64 10 Z"/>
+    </g>
+    <g transform="translate(470 168) scale(.65)">
+      <path class="hs-fish" d="M0 0 C14 -12 38 -12 50 0 C38 12 14 12 0 0 Z M50 0 L64 -10 L64 10 Z"/>
+    </g>
+    <g transform="translate(540 186) scale(.7)">
+      <path class="hs-fish-accent" d="M0 0 C14 -12 38 -12 50 0 C38 12 14 12 0 0 Z M50 0 L64 -10 L64 10 Z"/>
+    </g>
+  </g>
+
+  <!-- 泡（下から上へ） -->
+  <g class="hs-bubbles">
+    <circle class="hs-bubble" cx="760" cy="300" r="7"/>
+    <circle class="hs-bubble" cx="774" cy="262" r="5"/>
+    <circle class="hs-bubble" cx="764" cy="226" r="4"/>
+    <circle class="hs-bubble" cx="778" cy="196" r="3"/>
+    <circle class="hs-bubble" cx="150" cy="286" r="5"/>
+    <circle class="hs-bubble" cx="160" cy="250" r="3.5"/>
+    <circle class="hs-bubble" cx="1100" cy="300" r="5"/>
+    <circle class="hs-bubble" cx="1092" cy="262" r="3.5"/>
+  </g>
+
+  <!-- 海底：岩・サンゴ・海藻 -->
+  <g class="hs-seabed">
+    <path class="hs-rock" d="M0 360 V322 Q80 296 170 318 Q240 334 300 312 Q380 286 470 318 Q560 346 660 324 Q760 300 860 322 Q960 344 1060 316 Q1130 298 1200 314 V360 Z"/>
+    <path class="hs-coral" d="M330 316 V282 M330 298 Q316 290 314 272 M330 292 Q346 284 348 266"/>
+    <circle class="hs-coral-2" cx="900" cy="316" r="14"/>
+    <circle class="hs-coral-2" cx="922" cy="320" r="10"/>
+    <path class="hs-weed" d="M620 330 Q610 300 624 276 Q636 254 626 232"/>
+    <path class="hs-weed" d="M640 332 Q652 308 642 288"/>
+    <path class="hs-weed" d="M1010 318 Q1000 292 1014 270"/>
+  </g>
+</svg>
