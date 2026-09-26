@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { EquipmentSection, Severity } from '../../types';
 import { filterSectionsBySeverity } from '../../lib/logic';
 
@@ -66,6 +66,14 @@ export function EquipmentPanel({
   isOpen: boolean;
   onToggle: () => void;
 }) {
+  const bodyClip = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const element = bodyClip.current;
+    if (!element) return;
+    if (isOpen) element.removeAttribute('inert');
+    else element.setAttribute('inert', '');
+  }, [isOpen]);
+
   return (
     <section id={`equipment-${section.no}`} className="panel equipment">
       <button className="equipment-toggle" onClick={onToggle} aria-expanded={isOpen}>
@@ -79,21 +87,23 @@ export function EquipmentPanel({
         </span>
       </button>
       <div className={'equipment-body-wrap ' + (isOpen ? 'open' : '')}>
-        <div className="equipment-body">
-          <ul className="sign-list">
-            {section.signs.map((sign, index) => (
-              <li key={`${sign.sign}-${index}`} className={sign.level}>
-                <p>
-                  <span aria-hidden="true">●</span>
-                  <strong>{sign.sign}</strong>
-                </p>
-                <p className="why">→ {sign.why}</p>
-              </li>
-            ))}
-          </ul>
-          <div className="guideline">
-            <b>交換・点検の目安</b>
-            <p>{section.guideline}</p>
+        <div ref={bodyClip} className="equipment-body-clip" aria-hidden={!isOpen}>
+          <div className="equipment-body">
+            <ul className="sign-list">
+              {section.signs.map((sign, index) => (
+                <li key={`${sign.sign}-${index}`} className={sign.level}>
+                  <p>
+                    <span aria-hidden="true">●</span>
+                    <strong>{sign.sign}</strong>
+                  </p>
+                  <p className="why">→ {sign.why}</p>
+                </li>
+              ))}
+            </ul>
+            <div className="guideline">
+              <b>交換・点検の目安</b>
+              <p>{section.guideline}</p>
+            </div>
           </div>
         </div>
       </div>

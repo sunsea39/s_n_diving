@@ -239,6 +239,24 @@ export function relatedAccidentsForDoc(accidents: Accident[], slug: string) {
   return accidents.filter((accident) => accident.related_doc_slugs.includes(slug));
 }
 
+export function groupDocsByCategory(docs: DivingDoc[]): { category: string; docs: DivingDoc[] }[] {
+  const groups = new Map<string, DivingDoc[]>();
+  [...docs]
+    .sort((first, second) => first.sort_order - second.sort_order)
+    .forEach((doc) => groups.set(doc.category, [...(groups.get(doc.category) ?? []), doc]));
+  return [...groups].map(([category, groupedDocs]) => ({ category, docs: groupedDocs }));
+}
+
+export function latestDocs(docs: DivingDoc[], limit = 4): DivingDoc[] {
+  return [...docs]
+    .sort((first, second) => {
+      const firstUpdated = Date.parse(first.updated_at ?? '') || 0;
+      const secondUpdated = Date.parse(second.updated_at ?? '') || 0;
+      return secondUpdated - firstUpdated || second.sort_order - first.sort_order;
+    })
+    .slice(0, limit);
+}
+
 export function docBodyForSave(doc: DivingDoc): DocBody {
   return normalizeDocBody(doc.body);
 }

@@ -141,12 +141,19 @@ function Drawer({
 }
 export function SiteLayout() {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setOpen(false), []);
   const location = useLocation();
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > 0);
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    return () => window.removeEventListener('scroll', update);
+  }, []);
   return (
     <div className="app-shell">
-      <header className="site-header">
+      <header className="site-header" data-scrolled={scrolled || undefined}>
         <div className="header-inner">
           <Link to="/" className="brand">
             <img src={import.meta.env.BASE_URL + 'icons/logo.svg'} alt="" />

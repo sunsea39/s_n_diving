@@ -2,6 +2,7 @@
 
 :root,
 :root[data-theme='light'] {
+  --header-h: calc(64px + env(safe-area-inset-top));
   --navy: #0b3c5d;
   --teal: #1b998b;
   --ink: #4f5b62;
@@ -177,8 +178,18 @@ p {
   padding-bottom: calc(78px + env(safe-area-inset-bottom));
 }
 .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  padding-top: env(safe-area-inset-top);
   border-bottom: 1px solid var(--line);
   background: var(--ground);
+  background: color-mix(in srgb, var(--ground) 92%, transparent);
+  backdrop-filter: blur(8px);
+  transition: box-shadow 180ms ease;
+}
+.site-header[data-scrolled] {
+  box-shadow: 0 3px 10px var(--shadow);
 }
 .header-inner,
 main,
@@ -527,6 +538,12 @@ main {
   border-color: var(--teal);
   color: var(--teal);
 }
+.doc-category {
+  margin-top: 28px;
+}
+.doc-category h2 {
+  margin-bottom: 12px;
+}
 .filter-row button.danger-choice.selected {
   border-color: var(--red);
   color: var(--red);
@@ -538,7 +555,7 @@ main {
   margin-top: 8px;
 }
 .equipment {
-  scroll-margin-top: 18px;
+  scroll-margin-top: calc(var(--header-h) + 8px);
   overflow: hidden;
 }
 .equipment-toggle {
@@ -1035,7 +1052,7 @@ body.drawer-open {
   margin-top: 24px;
 }
 .block-heading {
-  scroll-margin-top: 16px;
+  scroll-margin-top: calc(var(--header-h) + 52px + 8px);
 }
 .text-block > :last-child,
 .content-card p,
@@ -1148,6 +1165,37 @@ th {
   cursor: pointer;
   color: var(--navy);
   font-weight: 700;
+}
+.anchor-chips {
+  position: sticky;
+  top: var(--header-h);
+  z-index: 20;
+  margin-inline: -16px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--ground);
+  background: color-mix(in srgb, var(--ground) 92%, transparent);
+  backdrop-filter: blur(8px);
+}
+.back-to-top {
+  position: fixed;
+  right: 16px;
+  bottom: calc(90px + env(safe-area-inset-bottom));
+  z-index: 25;
+  min-height: 38px;
+  padding: 5px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--navy);
+  background: var(--ground);
+  box-shadow: 0 3px 10px var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+.back-to-top.visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 .links-block {
   display: grid;
@@ -1294,6 +1342,9 @@ th {
   }
   .site-footer {
     padding-bottom: 20px;
+  }
+  .back-to-top {
+    bottom: 20px;
   }
   .card-grid,
   .habit-grid,

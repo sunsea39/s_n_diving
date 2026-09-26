@@ -4,7 +4,7 @@ import { DocCard } from '../components/DocContent';
 import { HeroScene } from '../components/HeroScene';
 import { ThreadRow } from '../components/ThreadRow';
 import { useAppData } from '../context/AppDataContext';
-import { formatNextDive, relativeDate, selectNextDive } from '../lib/logic';
+import { formatNextDive, latestDocs, relativeDate, selectNextDive } from '../lib/logic';
 import { requireSupabase } from '../lib/supabase';
 import { usePageTitle } from '../lib/pageTitle';
 import type { Thread } from '../types';
@@ -42,6 +42,7 @@ export function TopPage() {
   usePageTitle('ホーム');
   const { docs, news, accidents, isBoardMember, loading } = useAppData();
   const nextDive = selectNextDive(news);
+  const newestDocs = latestDocs(docs);
 
   return (
     <>
@@ -108,7 +109,7 @@ export function TopPage() {
           <Link to="/docs">一覧へ</Link>
         </div>
         <div className="card-grid">
-          {docs.slice(0, 3).map((doc) => (
+          {newestDocs.map((doc) => (
             <DocCard doc={doc} key={doc.slug} />
           ))}
         </div>

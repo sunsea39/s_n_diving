@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { createManualSeedSql } from '../../scripts/generate-manual-seed.mjs';
 import {
   calculateResizeDimensions,
   filterSectionsBySeverity,
@@ -11,9 +14,12 @@ import {
   validateBlock,
   accidentOutcomeMeta,
   validateDisplayName,
-  validateThreadInput
+  validateThreadInput,
+  groupDocsByCategory
 } from './logic';
-import type { Accident, EquipmentSection, NewsItem } from '../types';
+import type { Accident, DivingDoc, EquipmentSection, NewsItem } from '../types';
+import { InlineBold } from '../components/InlineBold';
+import { parseBoldSegments } from './bold';
 
 const section: EquipmentSection = {
   no: 1,
@@ -117,6 +123,52 @@ describe('資料ブロック', () => {
     expect(result.blocks.map((block) => block.type)).toEqual(['text', 'signs', 'heading', 'cards']);
     expect(validateBlock({ type: 'heading', text: '' })).toContain('見出し');
     expect(validateBlock({ type: 'heading', text: '確認' })).toBeNull();
+  });
+});
+
+describe('資料の表示と seed', () => {
+  it('太字だけを解釈し、HTMLのような本文はエスケープする', () => {
+    expect(parseBoldSegments('通常 **強調**')).toEqual([
+      { text: '通常 ', bold: false },
+      { text: '強調', bold: true }
+    ]);
+    expect(
+      renderToStaticMarkup(
+        createElement(InlineBold, { text: '**重要** <script>alert(1)</script>' })
+      )
+    ).toBe('<strong>重要</strong> &lt;script&gt;alert(1)&lt;/script&gt;');
+  });
+
+  it('資料をカテゴリごとに sort_order 順でまとめる', () => {
+    const docs = [
+      { slug: 'intro', category: 'ダイビング入門', sort_order: 10 },
+      { slug: 'gear', category: '機材', sort_order: 1 },
+      { slug: 'chapter', category: 'ダイビング入門', sort_order: 11 }
+    ] as DivingDoc[];
+    expect(
+      groupDocsByCategory(docs).map((group) => [group.category, group.docs.map((doc) => doc.slug)])
+    ).toEqual([
+      ['機材', ['gear']],
+      ['ダイビング入門', ['intro', 'chapter']]
+    ]);
+  });
+
+  it('manual JSON を slug の upsert SQL にする', () => {
+    const sql = createManualSeedSql([
+      {
+        slug: 'basics-start',
+        title: 'はじめに',
+        category: 'ダイビング入門',
+        summary: '',
+        icon: '',
+        status: 'published',
+        sort_order: 10,
+        body: { intro: '', blocks: [], disclaimer: '' }
+      }
+    ]);
+    expect(sql).toContain('jsonb_array_elements');
+    expect(sql).toContain('on conflict (slug) do update');
+    expect(sql).toContain('"slug":"basics-start"');
   });
 });
 

@@ -125,16 +125,21 @@
 .equipment-body-wrap {
   display: grid;
   grid-template-rows: 0fr;
-  overflow: hidden;
-  transition: grid-template-rows 300ms ease;
+  visibility: hidden;
+  transition:
+    grid-template-rows 300ms ease,
+    visibility 0s linear 300ms;
 }
 
 .equipment-body-wrap.open {
   grid-template-rows: 1fr;
+  visibility: visible;
+  transition-delay: 0s;
 }
 
-.equipment-body {
+.equipment-body-clip {
   min-height: 0;
+  overflow: hidden;
 }
 
 .qa-block details {
@@ -152,8 +157,8 @@
   overflow: hidden;
 }
 
-.qa-block details:not([open]) > .qa-answer {
-  display: block;
+.qa-answer-content {
+  padding-top: 8px;
 }
 
 .hero-scene .hs-waves-back {

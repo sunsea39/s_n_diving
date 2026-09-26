@@ -10,7 +10,10 @@ export function DocDetailPage() {
   const { docs, disclaimer, accidents } = useAppData();
   const doc = docs.find((item) => item.slug === slug);
   usePageTitle(doc?.title ?? '資料');
-  const displayDoc = doc && disclaimer ? { ...doc, body: { ...doc.body, disclaimer } } : doc;
+  const displayDoc =
+    doc && disclaimer && doc.category !== 'ダイビング入門'
+      ? { ...doc, body: { ...doc.body, disclaimer } }
+      : doc;
 
   const related = doc ? relatedAccidentsForDoc(accidents, doc.slug) : [];
   return displayDoc ? (

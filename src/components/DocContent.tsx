@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { normalizeDocBody } from '../lib/logic';
 import type { DivingDoc } from '../types';
@@ -5,10 +6,32 @@ import { ContentBlock } from './blocks';
 
 const assetPath = (icon: string) => `${import.meta.env.BASE_URL}img/${icon}.png`;
 
+function BackToTop() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const update = () => setVisible(window.scrollY >= 600);
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    return () => window.removeEventListener('scroll', update);
+  }, []);
+
+  return (
+    <button
+      className={`back-to-top ${visible ? 'visible' : ''}`}
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      tabIndex={visible ? 0 : -1}
+      aria-hidden={!visible}
+    >
+      ▲ 上へ
+    </button>
+  );
+}
+
 export function DocContent({ doc, preview = false }: { doc: DivingDoc; preview?: boolean }) {
   const body = normalizeDocBody(doc.body);
-  const anchors = body.blocks.flatMap((block) => {
-    if (block.type === 'heading') return [{ id: `heading-${block.text}`, label: block.text }];
+  const anchors = body.blocks.flatMap((block, index) => {
+    if (block.type === 'heading') return [{ id: `heading-${index}`, label: block.text }];
     if (block.type === 'signs') {
       return block.sections.map((section) => ({
         id: `equipment-${section.no}`,
@@ -35,7 +58,7 @@ export function DocContent({ doc, preview = false }: { doc: DivingDoc; preview?:
       <div className="doc-blocks">
         {body.blocks.map((block, index) => (
           <section
-            id={block.type === 'heading' ? `heading-${block.text}` : undefined}
+            id={block.type === 'heading' ? `heading-${index}` : undefined}
             key={`${block.type}-${index}`}
           >
             <ContentBlock
@@ -47,6 +70,7 @@ export function DocContent({ doc, preview = false }: { doc: DivingDoc; preview?:
         ))}
       </div>
       {body.disclaimer && <aside className="disclaimer">{body.disclaimer}</aside>}
+      {!preview && <BackToTop />}
     </article>
   );
 }

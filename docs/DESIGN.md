@@ -1,4 +1,4 @@
-# N×S_Diving 実装仕様 v1.2
+# N×S_Diving 実装仕様 v1.3
 
 ## 1. 概要
 
@@ -15,6 +15,7 @@
 - モバイル優先。600px 未満は下部タブ（ホーム / 資料 / 事故事例 / 掲示板）のアイコン＋ラベル、1024px 未満は右側ハンバーガードロワー、1024px 以上は横並びナビとテーマ切替ボタン。ドロワーと `/more` では 3 種のテーマを選択できる。
 - 下部タブは高さ 56px（safe area を加算）。選択中はティール色の 52×28px 相当のピルをアイコンの背面に表示する。アイコンは `src/components/icons.tsx` のインライン SVG（24px、currentColor）を用いる。
 - トップはコピーの下に CSS 変数で着色する `HeroScene` を全幅・角丸 16px で表示し、NEXT DIVE カードを下端へ 28px 重ねる。高さはモバイル 150px、600px 以上 200px、1024px 以上 240px。
+- ヘッダーは `--header-h`（64px と safe area）を基準に固定する。半透明の `--ground` と blur、スクロール後の薄い影を持ち、ドロワーより低い z-index に保つ。
 
 ## 3. ルーティング
 
@@ -32,6 +33,11 @@
 ## 4. 資料データ
 
 docs.body は JSONB の intro、blocks、disclaimer。Block は heading / text / callout / signs / cards / steps / checklist / table / image / qa / links の union。
+
+- `text`、`callout`、`steps`、`qa` は `**太字**` だけを React のテキストノードとして解釈する。HTML は挿入せずエスケープする。
+- `/docs` はカテゴリ別に `sort_order` 順でまとめ、カテゴリチップで絞り込む。トップの資料欄はカテゴリ代表ではなく `updated_at` が新しい 4 件を表示する。
+- 資料詳細の heading から目次チップを生成する。目次はヘッダー直下に sticky で保持し、見出しと機材セクションはヘッダーと目次分の scroll margin を持つ。600px を超えてスクロールすると「▲ 上へ」を表示する。
+- `private/manual/*.json` はダイビング入門の非公開本文で、`scripts/generate-manual-seed.mjs` が docs upsert 用 `private/manual/manual-seed.sql` を生成する。`private/` がない環境では何も書き込まず終了する。
 
 - legacy の sections / habits 本文は normalizeDocBody() で text、signs、習慣見出し、3列 cards に正規化して表示する。
 - blocks は src/components/blocks/ の専用コンポーネントで描画する。
@@ -67,6 +73,6 @@ v1.1 migration と seed は再実行安全。seed の事故事例は 【記入�
 
 public/icons/logo.svg と favicon.svg は差し替え可能な仮コンパス。ヘッダーは 28px の logo.svg を使う。ナビゲーション、ドロワー、テーマ操作は外部ライブラリを使わず `src/components/icons.tsx` の SVG コンポーネントを使う。最終 PNG（192 / 512 / apple touch）は支給後に manifest の icons へ追加する。
 
-`src/styles/motion.css` はルートのフェードイン、カードの 40ms スタガー、ホバー時の 2px リフト、押下時の scale(.97)、タブピル、ハンバーガー、アコーディオン、ヒーローの波・泡・魚・光・ブイを担当する。ヒーローのアニメーションは IntersectionObserver で画面外なら停止し、`prefers-reduced-motion: reduce` ではすべて無効化する。テーマ色の遷移は初回描画後にだけ有効化する。
+`src/styles/motion.css` はルートのフェードイン、カードの 40ms スタガー、ホバー時の 2px リフト、押下時の scale(.97)、タブピル、ハンバーガー、アコーディオン、ヒーローの波・泡・魚・光・ブイを担当する。機材のアコーディオンは outer grid の `0fr/1fr` と、`min-height: 0; overflow: hidden` の単一 inner clip を使い、閉じた内容を inert・非表示にする。Q&A も同じ grid/clip 構造にする。ヒーローのアニメーションは IntersectionObserver で画面外なら停止し、`prefers-reduced-motion: reduce` ではすべて無効化する。テーマ色の遷移は初回描画後にだけ有効化する。
 
 すべてのページは noindex, nofollow。title は ページ名 | N×S_Diving。

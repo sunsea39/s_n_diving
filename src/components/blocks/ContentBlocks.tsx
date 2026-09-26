@@ -1,30 +1,37 @@
 import { useEffect, useMemo, useState } from 'react';
+import { InlineBold } from '../InlineBold';
 import type { Block } from '../../types';
 import { SignsBlock } from './SignsBlock';
+
+function FormattedText({ text }: { text: string }) {
+  return text.split(/\n\s*\n/).map((paragraph, index) => {
+    const lines = paragraph.split('\n');
+    const list = lines.every((line) => line.startsWith('- '));
+    return list ? (
+      <ul key={index}>
+        {lines.map((line, item) => (
+          <li key={item}>
+            <InlineBold text={line.slice(2)} />
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p key={index}>
+        {lines.map((line, item) => (
+          <span key={item}>
+            <InlineBold text={line} />
+            {item < lines.length - 1 && <br />}
+          </span>
+        ))}
+      </p>
+    );
+  });
+}
 
 function TextBlock({ text }: { text: string }) {
   return (
     <div className="text-block">
-      {text.split(/\n\s*\n/).map((paragraph, index) => {
-        const lines = paragraph.split('\n');
-        const list = lines.every((line) => line.startsWith('- '));
-        return list ? (
-          <ul key={index}>
-            {lines.map((line, item) => (
-              <li key={item}>{line.slice(2)}</li>
-            ))}
-          </ul>
-        ) : (
-          <p key={index}>
-            {lines.map((line, item) => (
-              <span key={item}>
-                {line}
-                {item < lines.length - 1 && <br />}
-              </span>
-            ))}
-          </p>
-        );
-      })}
+      <FormattedText text={text} />
     </div>
   );
 }
@@ -113,7 +120,9 @@ export function ContentBlock({
       return (
         <aside className={`callout ${block.tone}`}>
           <b>{block.title}</b>
-          <p>{block.text}</p>
+          <div className="callout-content">
+            <FormattedText text={block.text} />
+          </div>
         </aside>
       );
     case 'signs':
@@ -125,8 +134,14 @@ export function ContentBlock({
         <ol className="steps-block">
           {block.items.map((item, index) => (
             <li key={`${item.title}-${index}`}>
-              <b>{item.title}</b>
-              <p>{item.text}</p>
+              <b>
+                <InlineBold text={item.title} />
+              </b>
+              {item.text && (
+                <p>
+                  <InlineBold text={item.text} />
+                </p>
+              )}
             </li>
           ))}
         </ol>
@@ -168,9 +183,15 @@ export function ContentBlock({
         <div className="qa-block">
           {block.items.map((item, index) => (
             <details key={`${item.q}-${index}`}>
-              <summary>{item.q}</summary>
+              <summary>
+                <InlineBold text={item.q} />
+              </summary>
               <div className="qa-answer">
-                <p>{item.a}</p>
+                <div className="qa-answer-content">
+                  <p>
+                    <InlineBold text={item.a} />
+                  </p>
+                </div>
               </div>
             </details>
           ))}
