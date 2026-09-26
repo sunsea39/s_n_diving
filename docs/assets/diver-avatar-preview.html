@@ -12,18 +12,20 @@
 </style>
 </head>
 <body>
-<h1>ダイバーアバター：プリセット 12 種（部品の組み合わせ）</h1>
+<h1>ダイバーアバター：プリセット 16 種（部品の組み合わせ）</h1>
 <div class="grid" id="grid"></div>
 <script>
 /*
   N×S_Diving 既定アイコン（ダイバー）の部品。Claude 作成。
-  viewBox 0 0 120 120。描画順：背景 → 後ろ髪 → 体（ウェットスーツ）→ 首 → 耳 → 顔 → 表情 → 前髪 → マスク。
+  viewBox 0 0 120 120。描画順：背景 → 後ろ髪 → 体（ウェットスーツ）→ 首 → 耳 → 顔 → 表情 → 前髪 → 小物（マスク／バンダナ）。
+  v2.3：小物は accessory = none | mask | bandana（bandanaColor で色）。ウェットスーツがティールのとき首の V ラインはネイビー。
   React 化するときは部品のパスと色をそのまま使うこと（SPEC_2_2 §M-2）。
 */
 const PALETTE = {
   skin:  { light:'#F6D7C3', fair:'#EDC0A0', tan:'#D9A07A', brown:'#B8794F', deep:'#8A5634' },
   hair:  { black:'#2B2522', brown:'#5A3A24', light:'#A8753F', blond:'#D8B26A', gray:'#8C9398', teal:'#1B998B' },
   suit:  { navy:'#0B3C5D', black:'#22272B', teal:'#1B998B', coral:'#D64527' },
+  bandana: { red:'#D64527', navy:'#0B3C5D', teal:'#1B998B', yellow:'#F3C969', pink:'#E88BA8', black:'#22272B', white:'#F4F4F2' },
   bg:    { mist:'#EEF5F6', sea:'#CDEBE5', sand:'#FDE9C8', coral:'#F9D9D2', sky:'#DDE3F5', night:'#0B3C5D' }
 };
 const shade = (hex, f) => { const n=parseInt(hex.slice(1),16); const c=[n>>16,(n>>8)&255,n&255].map(v=>Math.max(0,Math.min(255,Math.round(v*f)))); return '#'+c.map(v=>v.toString(16).padStart(2,'0')).join(''); };
@@ -43,7 +45,18 @@ const FACE = {
   cool:   { label:'きりっ', svg:(ink)=>`<path d="M46 51 l9 -2 M74 51 l-9 -2" stroke="${ink}" stroke-width="2.4" stroke-linecap="round"/><circle cx="52" cy="58" r="2.6" fill="${ink}"/><circle cx="68" cy="58" r="2.6" fill="${ink}"/><path d="M55 71 q5 2 10 0" fill="none" stroke="${ink}" stroke-width="2.4" stroke-linecap="round"/>` }
 };
 
-function diver({ skin='fair', hair='short', hairColor='black', face='smile', suit='navy', bg='mist', mask=false }) {
+function bandana(color) {
+  const dot = color === '#F4F4F2' || color === '#F3C969' ? '#0B3C5D' : '#FFFFFF';
+  return `<path d="M35.5 47 C44 39.5 76 39.5 84.5 47 L84 54 C76 46.5 44 46.5 36 54 Z" fill="${color}"/>
+    <g fill="${dot}" opacity=".85"><circle cx="44" cy="46.2" r="1.3"/><circle cx="52" cy="44.4" r="1.3"/><circle cx="60" cy="43.8" r="1.3"/><circle cx="68" cy="44.4" r="1.3"/><circle cx="76" cy="46.2" r="1.3"/></g>
+    <circle cx="86" cy="50.5" r="3.6" fill="${color}"/>
+    <path d="M88.5 49.5 L98 43.5 L96 52.5 Z" fill="${color}"/>
+    <path d="M88.5 52 L97 59 L91.5 59.5 Z" fill="${color}"/>`;
+}
+
+function diver({ skin='fair', hair='short', hairColor='black', face='smile', suit='navy', bg='mist', mask=false, accessory, bandanaColor='red' }) {
+  const acc = accessory || (mask ? 'mask' : 'none');
+  const collar = suit === 'teal' ? '#0B3C5D' : '#1B998B';
   const s = PALETTE.skin[skin], h = PALETTE.hair[hairColor], w = PALETTE.suit[suit], b = PALETTE.bg[bg];
   const ink = '#2B2522';
   const H = HAIR[hair];
@@ -54,14 +67,15 @@ function diver({ skin='fair', hair='short', hairColor='black', face='smile', sui
     <circle cx="60" cy="60" r="60" fill="${b}"/>
     ${H.back ? `<path d="${H.back}" fill="${h}"/>` : ''}
     <path d="M18 122 C22 97 40 87 60 87 C80 87 98 97 102 122 Z" fill="${w}"/>
-    <path d="M50 88 L60 101 L70 88" fill="none" stroke="#1B998B" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M50 88 L60 101 L70 88" fill="none" stroke="${collar}" stroke-width="3" stroke-linejoin="round"/>
     <rect x="52" y="76" width="16" height="13" rx="4" fill="${shade(s,.93)}"/>
     <ellipse cx="35.5" cy="60" rx="4.5" ry="6" fill="${s}"/><ellipse cx="84.5" cy="60" rx="4.5" ry="6" fill="${s}"/>
     <ellipse cx="60" cy="58" rx="24" ry="27" fill="${s}"/>
     <circle cx="46" cy="66" r="4" fill="#E88B7A" opacity=".28"/><circle cx="74" cy="66" r="4" fill="#E88B7A" opacity=".28"/>
     ${FACE[face].svg(ink)}
     <path d="${H.front}" fill="${h}"/>
-    ${mask ? `<path d="M35 44 C45 39 75 39 85 44" fill="none" stroke="#22272B" stroke-width="4" stroke-linecap="round"/>
+    ${acc === 'bandana' ? bandana(PALETTE.bandana[bandanaColor]) : ''}
+    ${acc === 'mask' ? `<path d="M35 44 C45 39 75 39 85 44" fill="none" stroke="#22272B" stroke-width="4" stroke-linecap="round"/>
       <rect x="43" y="32" width="34" height="13" rx="6.5" fill="#BFE6E0" stroke="#0B3C5D" stroke-width="2.5"/>
       <line x1="60" y1="33" x2="60" y2="44" stroke="#0B3C5D" stroke-width="2"/>` : ''}
     </g>
@@ -80,7 +94,11 @@ const PRESETS = [
   { name:'ボブ・グレー',        skin:'fair',  hair:'bob',   hairColor:'gray',  face:'calm',  suit:'coral', bg:'sky' },
   { name:'ベリーショート・夜',  skin:'light', hair:'buzz',  hairColor:'light', face:'smile', suit:'teal',  bg:'night' },
   { name:'ポニーテール・黒',    skin:'brown', hair:'pony',  hairColor:'black', face:'cool',  suit:'black', bg:'mist' },
-  { name:'ショート・ティール髪', skin:'fair', hair:'short', hairColor:'teal',  face:'wink',  suit:'navy',  bg:'sand', mask:true }
+  { name:'ショート・ティール髪', skin:'fair', hair:'short', hairColor:'teal',  face:'wink',  suit:'navy',  bg:'sand', mask:true },
+  { name:'バンダナ・赤',        skin:'tan',   hair:'short', hairColor:'black', face:'smile', suit:'teal',  bg:'sand', accessory:'bandana', bandanaColor:'red' },
+  { name:'バンダナ・紺',        skin:'fair',  hair:'long',  hairColor:'brown', face:'calm',  suit:'coral', bg:'mist', accessory:'bandana', bandanaColor:'navy' },
+  { name:'バンダナ・黄',        skin:'brown', hair:'buzz',  hairColor:'black', face:'wink',  suit:'navy',  bg:'sea',  accessory:'bandana', bandanaColor:'yellow' },
+  { name:'バンダナ・ピンク',    skin:'light', hair:'pony',  hairColor:'light', face:'smile', suit:'teal',  bg:'coral', accessory:'bandana', bandanaColor:'pink' }
 ];
 document.getElementById('grid').innerHTML = PRESETS.map(p => `<figure>${diver(p)}<figcaption>${p.name}</figcaption></figure>`).join('');
 </script>
