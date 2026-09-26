@@ -39,8 +39,9 @@ function TextBlock({ text }: { text: string }) {
 function ChecklistBlock({
   title,
   items,
-  storageKey
-}: Extract<Block, { type: 'checklist' }> & { storageKey?: string }) {
+  storageKey,
+  print = false
+}: Extract<Block, { type: 'checklist' }> & { storageKey?: string; print?: boolean }) {
   const initial = useMemo(() => {
     if (!storageKey) return [] as boolean[];
     try {
@@ -55,6 +56,22 @@ function ChecklistBlock({
     if (storageKey) localStorage.setItem(storageKey, JSON.stringify(checked));
   }, [checked, storageKey]);
   const reset = () => setChecked([]);
+  if (print) {
+    return (
+      <section className="panel checklist-block checklist-block-print">
+        <h2>{title}</h2>
+        <ul>
+          {items.map((item, index) => (
+            <li key={`${item.text}-${index}`} className={item.level ?? ''}>
+              {item.level === 'stop' && <b className="always-red">● </b>}
+              {item.level === 'check' && <b className="check-dot">● </b>}
+              {item.text}
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
+  }
   return (
     <section className="panel checklist-block">
       <h2>{title}</h2>
@@ -105,11 +122,13 @@ function CardBlock({ columns, items }: Extract<Block, { type: 'cards' }>) {
 export function ContentBlock({
   block,
   preview = false,
-  checklistKey
+  checklistKey,
+  print = false
 }: {
   block: Block;
   preview?: boolean;
   checklistKey?: string;
+  print?: boolean;
 }) {
   switch (block.type) {
     case 'heading':
@@ -126,7 +145,7 @@ export function ContentBlock({
         </aside>
       );
     case 'signs':
-      return <SignsBlock sections={block.sections} preview={preview} />;
+      return <SignsBlock sections={block.sections} preview={preview} print={print} />;
     case 'cards':
       return <CardBlock {...block} />;
     case 'steps':
@@ -147,7 +166,7 @@ export function ContentBlock({
         </ol>
       );
     case 'checklist':
-      return <ChecklistBlock {...block} storageKey={checklistKey} />;
+      return <ChecklistBlock {...block} storageKey={checklistKey} print={print} />;
     case 'table':
       return (
         <div className="table-scroll">
@@ -174,7 +193,7 @@ export function ContentBlock({
     case 'image':
       return (
         <figure className="image-block">
-          <img src={block.src} alt={block.alt} loading="lazy" />
+          <img src={block.src} alt={block.alt} loading={print ? 'eager' : 'lazy'} />
           {block.caption && <figcaption>{block.caption}</figcaption>}
         </figure>
       );
@@ -182,7 +201,7 @@ export function ContentBlock({
       return (
         <div className="qa-block">
           {block.items.map((item, index) => (
-            <details key={`${item.q}-${index}`}>
+            <details key={`${item.q}-${index}`} open={print || undefined}>
               <summary>
                 <InlineBold text={item.q} />
               </summary>

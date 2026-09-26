@@ -1,3 +1,31 @@
+/* Motion tokens live here so the pace of the whole interface can be tuned together. */
+:root {
+  --motion-drawer: 420ms;
+  --motion-drawer-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --motion-backdrop: 360ms;
+  --motion-burger: 320ms;
+  --motion-route: 420ms;
+  --motion-card: 560ms;
+  --motion-stagger: 90ms;
+  --motion-tab: 180ms;
+  --motion-accordion: 300ms;
+  --motion-theme: 200ms;
+  --motion-hover: 150ms;
+  --motion-press: 80ms;
+  --motion-wave-back: 22s;
+  --motion-wave-front: 32s;
+  --motion-bubble-1: 8s;
+  --motion-bubble-2: 9s;
+  --motion-bubble-3: 10s;
+  --motion-bubble-4: 11s;
+  --motion-bubble-5: 12s;
+  --motion-fish: 16s;
+  --motion-rays: 10s;
+  --motion-buoy: 6.5s;
+  --motion-none: 0s;
+  --motion-reduced: 0.01ms;
+}
+
 @keyframes route-enter {
   from {
     opacity: 0;
@@ -60,7 +88,7 @@
 }
 
 .route-main {
-  animation: route-enter 220ms ease-out both;
+  animation: route-enter var(--motion-route) ease-out both;
 }
 
 .card-grid > *,
@@ -68,7 +96,7 @@
 .news-list > *,
 .thread-list > *,
 .accident-list > * {
-  animation: card-enter 260ms ease-out both;
+  animation: card-enter var(--motion-card) ease-out both;
 }
 
 .card-grid > :nth-child(2),
@@ -76,7 +104,7 @@
 .news-list > :nth-child(2),
 .thread-list > :nth-child(2),
 .accident-list > :nth-child(2) {
-  animation-delay: 40ms;
+  animation-delay: var(--motion-stagger);
 }
 
 .card-grid > :nth-child(3),
@@ -84,30 +112,62 @@
 .news-list > :nth-child(3),
 .thread-list > :nth-child(3),
 .accident-list > :nth-child(3) {
-  animation-delay: 80ms;
+  animation-delay: calc(var(--motion-stagger) * 2);
 }
 
-.card-grid > :nth-child(n + 4),
-.content-card-grid > :nth-child(n + 4),
-.news-list > :nth-child(n + 4),
-.thread-list > :nth-child(n + 4),
-.accident-list > :nth-child(n + 4) {
-  animation-delay: 120ms;
+.card-grid > :nth-child(4),
+.content-card-grid > :nth-child(4),
+.news-list > :nth-child(4),
+.thread-list > :nth-child(4),
+.accident-list > :nth-child(4) {
+  animation-delay: calc(var(--motion-stagger) * 3);
+}
+
+.card-grid > :nth-child(5),
+.content-card-grid > :nth-child(5),
+.news-list > :nth-child(5),
+.thread-list > :nth-child(5),
+.accident-list > :nth-child(5) {
+  animation-delay: calc(var(--motion-stagger) * 4);
+}
+
+.card-grid > :nth-child(6),
+.content-card-grid > :nth-child(6),
+.news-list > :nth-child(6),
+.thread-list > :nth-child(6),
+.accident-list > :nth-child(6) {
+  animation-delay: calc(var(--motion-stagger) * 5);
+}
+
+.card-grid > :nth-child(7),
+.content-card-grid > :nth-child(7),
+.news-list > :nth-child(7),
+.thread-list > :nth-child(7),
+.accident-list > :nth-child(7) {
+  animation-delay: calc(var(--motion-stagger) * 6);
+}
+
+.card-grid > :nth-child(n + 8),
+.content-card-grid > :nth-child(n + 8),
+.news-list > :nth-child(n + 8),
+.thread-list > :nth-child(n + 8),
+.accident-list > :nth-child(n + 8) {
+  animation-delay: calc(var(--motion-stagger) * 7);
 }
 
 .bottom-tabs .tab-icon {
   transition:
-    background-color 180ms ease,
-    color 180ms ease,
-    transform 180ms ease;
+    background-color var(--motion-tab) ease,
+    color var(--motion-tab) ease,
+    transform var(--motion-tab) ease;
 }
 
 .menu-icon-line {
   transform-box: fill-box;
   transform-origin: center;
   transition:
-    transform 180ms ease,
-    opacity 180ms ease;
+    transform var(--motion-burger) ease,
+    opacity var(--motion-burger) ease;
 }
 
 .menu-button[aria-expanded='true'] .menu-icon-line-1 {
@@ -127,14 +187,14 @@
   grid-template-rows: 0fr;
   visibility: hidden;
   transition:
-    grid-template-rows 300ms ease,
-    visibility 0s linear 300ms;
+    grid-template-rows var(--motion-accordion) ease,
+    visibility var(--motion-none) linear var(--motion-accordion);
 }
 
 .equipment-body-wrap.open {
   grid-template-rows: 1fr;
   visibility: visible;
-  transition-delay: 0s;
+  transition-delay: var(--motion-none);
 }
 
 .equipment-body-clip {
@@ -145,7 +205,7 @@
 .qa-block details {
   display: grid;
   grid-template-rows: auto 0fr;
-  transition: grid-template-rows 300ms ease;
+  transition: grid-template-rows var(--motion-accordion) ease;
 }
 
 .qa-block details[open] {
@@ -162,32 +222,55 @@
 }
 
 .hero-scene .hs-waves-back {
-  animation: hs-wave-back 12s linear infinite;
+  animation: hs-wave-back var(--motion-wave-back) linear infinite;
 }
 
 .hero-scene .hs-waves-front {
-  animation: hs-wave-front 18s linear infinite;
+  animation: hs-wave-front var(--motion-wave-front) linear infinite;
 }
 
 .hero-scene .hs-bubbles {
-  animation: hs-bubbles-rise 8s ease-in-out infinite;
+  animation: none;
+}
+
+.hero-scene .hs-bubble {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hs-bubbles-rise var(--motion-bubble-1) ease-in-out infinite;
+}
+
+.hero-scene .hs-bubble:nth-child(2n) {
+  animation-duration: var(--motion-bubble-2);
+}
+
+.hero-scene .hs-bubble:nth-child(3n) {
+  animation-duration: var(--motion-bubble-3);
+}
+
+.hero-scene .hs-bubble:nth-child(4n) {
+  animation-duration: var(--motion-bubble-4);
+}
+
+.hero-scene .hs-bubble:nth-child(5n) {
+  animation-duration: var(--motion-bubble-5);
 }
 
 .hero-scene .hs-fish-school {
-  animation: hs-fish-drift 10s ease-in-out infinite;
+  animation: hs-fish-drift var(--motion-fish) ease-in-out infinite;
 }
 
 .hero-scene .hs-rays {
-  animation: hs-rays-glow 8s ease-in-out infinite;
+  animation: hs-rays-glow var(--motion-rays) ease-in-out infinite;
 }
 
 .hero-scene .hs-buoy-group {
-  animation: hs-buoy-bob 4s ease-in-out infinite;
+  animation: hs-buoy-bob var(--motion-buoy) ease-in-out infinite;
 }
 
 .hero-scene[data-animation-state='paused'] .hs-waves-back,
 .hero-scene[data-animation-state='paused'] .hs-waves-front,
 .hero-scene[data-animation-state='paused'] .hs-bubbles,
+.hero-scene[data-animation-state='paused'] .hs-bubble,
 .hero-scene[data-animation-state='paused'] .hs-fish-school,
 .hero-scene[data-animation-state='paused'] .hs-rays,
 .hero-scene[data-animation-state='paused'] .hs-buoy-group {
@@ -198,7 +281,7 @@ html.theme-ready,
 html.theme-ready *,
 html.theme-ready *::before,
 html.theme-ready *::after {
-  transition-duration: 200ms;
+  transition-duration: var(--motion-theme);
   transition-property: background-color, border-color, color, fill, stroke, box-shadow;
 }
 
@@ -211,8 +294,8 @@ html.theme-ready *::after {
   .own-actions button,
   .editor-row button {
     transition:
-      transform 150ms ease,
-      box-shadow 150ms ease;
+      transform var(--motion-hover) ease,
+      box-shadow var(--motion-hover) ease;
   }
 
   .panel:is(a, button):hover,
@@ -232,6 +315,7 @@ a.button:active,
 a.button-secondary:active,
 a.button-danger:active,
 .bottom-tabs a:active {
+  transition-duration: var(--motion-press);
   transform: scale(0.97);
 }
 
@@ -240,8 +324,8 @@ a.button-danger:active,
   *::before,
   *::after {
     scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
+    animation-duration: var(--motion-reduced) !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: var(--motion-reduced) !important;
   }
 }

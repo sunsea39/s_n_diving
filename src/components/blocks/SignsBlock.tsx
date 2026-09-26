@@ -6,10 +6,12 @@ const assetPath = (icon: string) => `${import.meta.env.BASE_URL}img/${icon}.png`
 
 export function SignsBlock({
   sections,
-  preview = false
+  preview = false,
+  print = false
 }: {
   sections: EquipmentSection[];
   preview?: boolean;
+  print?: boolean;
 }) {
   const [filter, setFilter] = useState<Severity | 'all'>('all');
   const [open, setOpen] = useState<number[]>(() =>
@@ -22,6 +24,22 @@ export function SignsBlock({
     setOpen((items) =>
       items.includes(number) ? items.filter((item) => item !== number) : [...items, number]
     );
+
+  if (print) {
+    return (
+      <section className="signs-block signs-block-print" aria-label="機材の劣化・寿命のサイン">
+        <div className="legend" aria-label="症状の凡例">
+          <span className="stop-dot">● 使用を中止してすぐ点検・交換</span>
+          <span className="check-dot">● 早めに点検・交換を検討</span>
+        </div>
+        <div className="equipment-grid">
+          {sections.map((section) => (
+            <PrintEquipmentPanel key={section.no} section={section} />
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="signs-block" aria-label="機材の劣化・寿命のサイン">
@@ -53,6 +71,37 @@ export function SignsBlock({
       {filter === 'stop' && visible.length === 0 && (
         <p className="empty">即中止の症状はありません。</p>
       )}
+    </section>
+  );
+}
+
+function PrintEquipmentPanel({ section }: { section: EquipmentSection }) {
+  return (
+    <section id={`equipment-${section.no}`} className="panel equipment equipment-print">
+      <div className="equipment-toggle">
+        <img src={assetPath(section.icon)} alt="" />
+        <span>
+          <b>{`${section.no}. ${section.name}`}</b>
+          <small>{section.sub}</small>
+        </span>
+      </div>
+      <div className="equipment-body">
+        <ul className="sign-list">
+          {section.signs.map((sign, index) => (
+            <li key={`${sign.sign}-${index}`} className={sign.level}>
+              <p>
+                <span aria-hidden="true">●</span>
+                <strong>{sign.sign}</strong>
+              </p>
+              <p className="why">→ {sign.why}</p>
+            </li>
+          ))}
+        </ul>
+        <div className="guideline">
+          <b>交換・点検の目安</b>
+          <p>{section.guideline}</p>
+        </div>
+      </div>
     </section>
   );
 }

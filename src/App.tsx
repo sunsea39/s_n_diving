@@ -4,8 +4,10 @@ import { SiteLayout } from './components/SiteLayout';
 import { AppDataProvider } from './context/AppDataProvider';
 import { AdminLoginPage } from './pages/AdminLoginPage';
 import { AccidentDetailPage } from './pages/AccidentDetailPage';
+import { AccidentPrintPage } from './pages/AccidentPrintPage';
 import { AccidentsPage } from './pages/AccidentsPage';
 import { DocDetailPage } from './pages/DocDetailPage';
+import { DocPrintPage } from './pages/DocPrintPage';
 import { DocsPage } from './pages/DocsPage';
 import { JoinPage } from './pages/JoinPage';
 import { MorePage } from './pages/MorePage';
@@ -21,6 +23,8 @@ export default function App() {
   return (
     <AppDataProvider>
       <Routes>
+        <Route path="/docs/:slug/print" element={<DocPrintPage />} />
+        <Route path="/accidents/:slug/print" element={<AccidentPrintPage />} />
         <Route element={<SiteLayout />}>
           <Route path="/" element={<TopPage />} />
           <Route path="/docs" element={<DocsPage />} />

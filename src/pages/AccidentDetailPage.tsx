@@ -16,6 +16,11 @@ export function AccidentDetailPage() {
     <article className="accident-detail">
       <span className={'outcome-badge ' + outcome.className}>{outcome.label}</span>
       <h1>{accident.title}</h1>
+      <div className="button-row accident-print-link">
+        <Link className="button-secondary" to={`/accidents/${accident.slug}/print`}>
+          PDF・印刷
+        </Link>
+      </div>
       <table className="fact-table">
         <tbody>
           <tr>

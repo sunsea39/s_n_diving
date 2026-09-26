@@ -18,6 +18,11 @@ export function DocDetailPage() {
   const related = doc ? relatedAccidentsForDoc(accidents, doc.slug) : [];
   return displayDoc ? (
     <>
+      <div className="button-row doc-print-link">
+        <Link className="button-secondary" to={`/docs/${displayDoc.slug}/print`}>
+          PDF・印刷
+        </Link>
+      </div>
       <DocContent doc={displayDoc} />
       {related.length > 0 && (
         <section className="related-accidents">

@@ -1,4 +1,4 @@
-# N×S_Diving 実装仕様 v1.3
+# N×S_Diving 実装仕様 v1.4
 
 ## 1. 概要
 
@@ -22,8 +22,8 @@
 | パス | 内容 |
 | --- | --- |
 | / | ヒーロー、NEXT DIVE、お知らせ、資料、事故事例新着、掲示板新着 |
-| /docs, /docs/:slug | 資料一覧とブロック形式の資料詳細 |
-| /accidents, /accidents/:slug | 事故事例の一覧・詳細 |
+| /docs, /docs/:slug, /docs/:slug/print | 資料一覧、ブロック形式の資料詳細、印刷専用ページ |
+| /accidents, /accidents/:slug, /accidents/:slug/print | 事故事例の一覧・詳細、A4 全文の印刷専用ページ |
 | /board*, /join | 合言葉で保護した掲示板 |
 | /more | このサイトについて、テーマ選択、退出とログイン導線 |
 | /admin/* | 管理画面（資料、事故事例、お知らせ、掲示板、設定） |
@@ -73,6 +73,13 @@ v1.1 migration と seed は再実行安全。seed の事故事例は 【記入�
 
 public/icons/logo.svg と favicon.svg は差し替え可能な仮コンパス。ヘッダーは 28px の logo.svg を使う。ナビゲーション、ドロワー、テーマ操作は外部ライブラリを使わず `src/components/icons.tsx` の SVG コンポーネントを使う。最終 PNG（192 / 512 / apple touch）は支給後に manifest の icons へ追加する。
 
-`src/styles/motion.css` はルートのフェードイン、カードの 40ms スタガー、ホバー時の 2px リフト、押下時の scale(.97)、タブピル、ハンバーガー、アコーディオン、ヒーローの波・泡・魚・光・ブイを担当する。機材のアコーディオンは outer grid の `0fr/1fr` と、`min-height: 0; overflow: hidden` の単一 inner clip を使い、閉じた内容を inert・非表示にする。Q&A も同じ grid/clip 構造にする。ヒーローのアニメーションは IntersectionObserver で画面外なら停止し、`prefers-reduced-motion: reduce` ではすべて無効化する。テーマ色の遷移は初回描画後にだけ有効化する。
+`src/styles/motion.css` は `:root` のモーショントークンを唯一の時間定義とする。ドロワー 420ms（専用イージング）、幕 360ms、メニューアイコン 320ms、ページ遷移 420ms、カード 560ms、スタガー 90ms（8枚目で上限）、波 22/32秒、泡 8〜12秒、魚 16秒、光 10秒、ブイ 6.5秒である。ホバー 150ms と押下 80ms は操作の応答性のため維持する。機材のアコーディオンは outer grid の `0fr/1fr` と、`min-height: 0; overflow: hidden` の単一 inner clip を使い、閉じた内容を inert・非表示にする。Q&A も同じ grid/clip 構造にする。ヒーローのアニメーションは IntersectionObserver で画面外なら停止し、`prefers-reduced-motion: reduce` ではすべて無効化する。テーマ色の遷移は初回描画後にだけ有効化する。
+
+## 9. PDF・印刷
+
+- 資料詳細と事故事例詳細には印刷専用ページへの導線を置く。印刷ページは `SiteLayout` の外にあり、ヘッダー、フッター、タブ、ドロワーを表示しない。すべて noindex のままにする。
+- 資料の印刷設定は localStorage の `ns-print` に保存する。カード／通し（全文）、A6／A7、A4 タイル／カード単票、要点のみ／要点＋本文を選べ、ブラウザの `window.print()` で PDF 保存する。
+- カードは intro の表紙、機材ごとの signs、見出しで区切った要点、cards ブロックから作る。カードごとに 10pt から A6 は 7pt、A7 は 6.5pt まで 0.5pt ずつ縮め、画像の読み込み後も収まらない場合は継続カードへ分割する。
+- 印刷は常にライト配色で `print-color-adjust: exact` を指定する。全文は A4（14mm / 12mm 余白）、カード単票は A6/A7 の named `@page`、タイルは A4 の named `@page` を使う。全文の見出し・機材・callout はページ途中で不自然に切れないようにする。
 
 すべてのページは noindex, nofollow。title は ページ名 | N×S_Diving。

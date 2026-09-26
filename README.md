@@ -4,6 +4,8 @@
 
 表示テーマはライト（既定）・ダーク・端末に合わせるから選べ、設定はこのブラウザに保存されます。
 
+資料詳細では「PDF・印刷」から、ブラウザの印刷機能を使って検索可能な PDF を保存できます。カード（A6/A7、A4 タイルまたは単票、要点のみ／本文つき）と A4 全文を選べ、設定は localStorage の `ns-print` に保存されます。事故事例は A4 全文で印刷できます。
+
 ## 初回セットアップ
 
 1. 専用 GitHub アカウントで `s_n_diving` リポジトリを作成して push し、Pages の Source を「GitHub Actions」に設定します。
@@ -25,6 +27,8 @@ npm run lint
 npm test
 npm run build
 ```
+
+印刷カードの分割、要点フィルタ、A4 タイル計算は Vitest で検証しています。印刷ではブラウザの送信先で「PDF として保存」を選んでください。
 
 `VITE_SUPABASE_URL` と `VITE_SUPABASE_ANON_KEY` を設定していない場合、アプリは「Supabase が未設定です」と表示し、同梱の機材資料だけをローカル表示します。
 
