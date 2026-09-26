@@ -1,0 +1,85 @@
+<!--
+  N×S_Diving フッターの背景画像（原画・案D「サンゴ礁と魚」）。Claude 作成。
+  下端は砂地（class="ft-sand"）で終わり、その下にフッター文字用の砂色の帯（CSS 変数 ft-sand と同じ色）が続く前提。
+  React コンポーネント化するときは class 名をそのまま使い、色は CSS 変数で与える（SPEC_2_1 §2）。
+  ここの <style> はライト表示の色。
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 240" preserveAspectRatio="xMidYMax slice" role="img" aria-label="サンゴ礁と魚の群れが泳ぐ海の中">
+  <style>
+    .ft-sea-top{stop-color:#4DBBAE}
+    .ft-sea-bottom{stop-color:#1B998B}
+    .ft-ray{fill:#FFFFFF;opacity:.14}
+    .ft-fish{fill:#EEF5F6}
+    .ft-fish-accent{fill:#F3C969}
+    .ft-bubble{fill:none;stroke:#FFFFFF;stroke-width:2;opacity:.8}
+    .ft-sand{fill:#E9DFC6}
+    .ft-sand-shade{fill:#D9CCAA}
+    .ft-coral{fill:none;stroke:#D98E04;stroke-width:9;stroke-linecap:round}
+    .ft-coral-round{fill:#D64527}
+    .ft-weed{fill:none;stroke:#0E7A6E;stroke-width:6;stroke-linecap:round}
+    .ft-rock{fill:#0B3C5D;opacity:.55}
+  </style>
+  <defs>
+    <linearGradient id="ft-sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" class="ft-sea-top"/>
+      <stop offset="1" class="ft-sea-bottom"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 海 -->
+  <rect width="1200" height="240" fill="url(#ft-sea)"/>
+
+  <!-- 差し込む光 -->
+  <g class="ft-rays">
+    <polygon class="ft-ray" points="300,0 360,0 250,240 150,240"/>
+    <polygon class="ft-ray" points="820,0 850,0 800,240 730,240"/>
+  </g>
+
+  <!-- 魚の群れ（左） -->
+  <g class="ft-fish-school ft-fish-school--a">
+    <path class="ft-fish" d="M180 82 c10-9 28-9 37 0 c-9 9-27 9-37 0z M217 82 l11-8 v16z"/>
+    <path class="ft-fish" d="M232 100 c8-7 22-7 29 0 c-7 7-21 7-29 0z M261 100 l9-6 v12z"/>
+    <path class="ft-fish" d="M150 104 c7-6 19-6 25 0 c-6 6-18 6-25 0z M175 104 l8-5 v10z"/>
+  </g>
+  <!-- 魚の群れ（右） -->
+  <g class="ft-fish-school ft-fish-school--b">
+    <path class="ft-fish" d="M760 66 c10-9 28-9 37 0 c-9 9-27 9-37 0z M797 66 l11-8 v16z"/>
+    <path class="ft-fish-accent" d="M704 88 c10-9 28-9 37 0 c-9 9-27 9-37 0z M741 88 l11-8 v16z"/>
+    <path class="ft-fish" d="M800 92 c7-6 19-6 25 0 c-6 6-18 6-25 0z M825 92 l8-5 v10z"/>
+  </g>
+
+  <!-- 泡 -->
+  <g class="ft-bubbles">
+    <circle class="ft-bubble" cx="560" cy="170" r="6"/>
+    <circle class="ft-bubble" cx="572" cy="138" r="4"/>
+    <circle class="ft-bubble" cx="563" cy="110" r="3"/>
+    <circle class="ft-bubble" cx="1050" cy="160" r="5"/>
+    <circle class="ft-bubble" cx="1060" cy="130" r="3.5"/>
+  </g>
+
+  <!-- 岩 -->
+  <path class="ft-rock" d="M740 206 q34-40 70-2 q20-22 44 4z"/>
+
+  <!-- 海藻（根元を軸に揺らす） -->
+  <g class="ft-weed-group ft-weed-group--a">
+    <path class="ft-weed" d="M620 206 Q606 174 624 146 Q640 120 626 98"/>
+    <path class="ft-weed" d="M646 208 Q662 180 648 156"/>
+  </g>
+  <g class="ft-weed-group ft-weed-group--b">
+    <path class="ft-weed" d="M1110 204 Q1098 180 1114 158 Q1126 140 1116 124"/>
+    <path class="ft-weed" d="M60 206 Q48 184 62 162"/>
+  </g>
+
+  <!-- サンゴ -->
+  <path class="ft-coral" d="M120 206 V156 M120 182 Q98 168 96 142 M120 172 Q142 160 146 136"/>
+  <path class="ft-coral" d="M980 204 V166 M980 184 Q964 174 962 154 M980 178 Q998 168 1000 148"/>
+  <g>
+    <circle class="ft-coral-round" cx="420" cy="202" r="22"/>
+    <circle class="ft-coral-round" cx="452" cy="208" r="15"/>
+    <circle class="ft-coral-round" cx="396" cy="210" r="12"/>
+  </g>
+
+  <!-- 砂地（下端はフッター文字の帯と同じ色につながる） -->
+  <path class="ft-sand" d="M0 240 V204 Q200 186 400 202 Q600 218 800 200 Q1000 184 1200 202 V240Z"/>
+  <path class="ft-sand-shade" d="M0 214 Q180 204 360 212 Q560 222 760 210 Q980 198 1200 212 V218 Q980 206 760 218 Q560 230 360 220 Q180 212 0 222Z"/>
+</svg>
