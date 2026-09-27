@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { AccidentCard } from '../AccidentsPage';
+import { ConfirmButton } from '../../components/ConfirmButton';
+import { Toast } from '../../components/Toast';
 import { useAppData } from '../../context/AppDataContext';
 import { accidentOutcomes, reorder, validateSlug } from '../../lib/logic';
 import {
@@ -10,6 +12,7 @@ import {
 } from '../../lib/accidentCsv';
 import { usePageTitle } from '../../lib/pageTitle';
 import { requireSupabase } from '../../lib/supabase';
+import { useToast } from '../../lib/toast';
 import type { Accident, AccidentOutcome, AccidentSource, AccidentTimelineItem } from '../../types';
 
 const tags = [
@@ -269,6 +272,10 @@ function StringRows({
 }
 export function AdminAccidentsListPage() {
   usePageTitle('事故事例管理');
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { refreshPublic } = useAppData();
+  const { message: toast, showToast } = useToast();
   const [accidents, setAccidents] = useState<Accident[]>([]);
   const [showImport, setShowImport] = useState(false);
   const load = async () => {
@@ -281,6 +288,22 @@ export function AdminAccidentsListPage() {
   useEffect(() => {
     void load();
   }, []);
+  useEffect(() => {
+    const message = (location.state as { toast?: string } | null)?.toast;
+    if (!message) return;
+    showToast(message);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate, showToast]);
+  const remove = async (target: Accident) => {
+    const result = await requireSupabase().from('accidents').delete().eq('id', target.id);
+    if (result.error) {
+      showToast(result.error.message || '事故事例を削除できませんでした。');
+      return;
+    }
+    setAccidents((items) => items.filter((item) => item.id !== target.id));
+    await refreshPublic();
+    showToast('事故事例を削除しました。');
+  };
   return (
     <>
       <div className="section-heading">
@@ -300,15 +323,26 @@ export function AdminAccidentsListPage() {
       {showImport && <AccidentCsvImport onImported={load} />}
       <div className="admin-list">
         {accidents.map((accident) => (
-          <Link className="panel news-row" to={'/admin/accidents/' + accident.id} key={accident.id}>
-            <span className="meta">
-              {accident.status === 'published' ? '公開中' : '下書き'} ・{' '}
-              {accident.occurred_label || accident.occurred_on || '時期不明'}
-            </span>
-            <b>{accident.title}</b>
-          </Link>
+          <article className="panel admin-list-row" key={accident.id}>
+            <Link className="news-row" to={'/admin/accidents/' + accident.id}>
+              <span className="meta">
+                {accident.status === 'published' ? '公開中' : '下書き'} ・{' '}
+                {accident.occurred_label || accident.occurred_on || '時期不明'}
+              </span>
+              <b>{accident.title}</b>
+            </Link>
+            <div className="admin-row-actions">
+              <ConfirmButton
+                className="button-danger"
+                label="削除"
+                message={`「${accident.title}」を削除しますか？この操作は取り消せません。`}
+                onConfirm={() => remove(accident)}
+              />
+            </div>
+          </article>
         ))}
       </div>
+      <Toast message={toast} />
     </>
   );
 }
@@ -316,6 +350,7 @@ export function AdminAccidentEditorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { docs, refreshPublic } = useAppData();
+  const { message: toast, showToast } = useToast();
   const [item, setItem] = useState<Accident>(emptyAccident);
   const [tab, setTab] = useState<'form' | 'preview'>('form');
   const [dirty, setDirty] = useState(false);
@@ -346,6 +381,17 @@ export function AdminAccidentEditorPage() {
     setItem((current) => ({ ...current, [key]: value }));
     setDirty(true);
   };
+  const remove = async () => {
+    if (!item.id) return;
+    const result = await requireSupabase().from('accidents').delete().eq('id', item.id);
+    if (result.error) {
+      setError(result.error.message || '事故事例を削除できませんでした。');
+      showToast('事故事例を削除できませんでした。');
+      return;
+    }
+    await refreshPublic();
+    navigate('/admin/accidents', { replace: true, state: { toast: '事故事例を削除しました。' } });
+  };
   const save = async () => {
     setError('');
     const slugError = validateSlug(item.slug);
@@ -375,6 +421,17 @@ export function AdminAccidentEditorPage() {
           <button className="active">プレビュー</button>
         </div>
         <AccidentCard accident={item} />
+        {item.id && (
+          <div className="button-row">
+            <ConfirmButton
+              className="button-danger"
+              label="削除"
+              message={`「${item.title}」を削除しますか？この操作は取り消せません。`}
+              onConfirm={remove}
+            />
+          </div>
+        )}
+        <Toast message={toast} />
       </>
     );
   return (
@@ -616,11 +673,20 @@ export function AdminAccidentEditorPage() {
           <button className="button" onClick={() => void save()}>
             保存する
           </button>
+          {item.id && (
+            <ConfirmButton
+              className="button-danger"
+              label="削除"
+              message={`「${item.title}」を削除しますか？この操作は取り消せません。`}
+              onConfirm={remove}
+            />
+          )}
           <Link className="button-secondary" to="/admin/accidents">
             一覧に戻る
           </Link>
         </div>
       </div>
+      <Toast message={toast} />
     </>
   );
 }

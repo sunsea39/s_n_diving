@@ -1,11 +1,22 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { ConfirmButton } from '../../components/ConfirmButton';
 import { DocContent } from '../../components/DocContent';
+import { Toast } from '../../components/Toast';
 import { useAppData } from '../../context/AppDataContext';
 import { resizeToJpeg } from '../../lib/images';
-import { normalizeDocBody, reorder, validateBlock, validateSlug } from '../../lib/logic';
+import {
+  canFeatureDoc,
+  HOME_FEATURED_LIMIT,
+  homeFeaturedCount,
+  normalizeDocBody,
+  reorder,
+  validateBlock,
+  validateSlug
+} from '../../lib/logic';
 import { usePageTitle } from '../../lib/pageTitle';
 import { requireSupabase } from '../../lib/supabase';
+import { useToast } from '../../lib/toast';
 import type { Block, DivingDoc, DocBody, EquipmentSection, Sign } from '../../types';
 
 const icons = ['', 'regulator', 'hose', 'bcd', 'computer', 'mask', 'fin', 'wetsuit', 'tank'];
@@ -45,6 +56,7 @@ const blankDoc = (blocks: Block[] = []): DivingDoc => ({
   icon: 'mask',
   status: 'draft',
   sort_order: 0,
+  home_featured: false,
   body: { intro: '', blocks: structuredClone(blocks), disclaimer: '' }
 });
 
@@ -519,6 +531,10 @@ function BlockForm({
 
 export function AdminDocsListPage() {
   usePageTitle('資料管理');
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { refreshPublic } = useAppData();
+  const { message: toast, showToast } = useToast();
   const [docs, setDocs] = useState<DivingDoc[]>([]);
   const [reordering, setReordering] = useState(false);
   const [beforeOrder, setBeforeOrder] = useState<DivingDoc[]>([]);
@@ -529,8 +545,54 @@ export function AdminDocsListPage() {
       .order('sort_order')
       .then(({ data }) => setDocs((data ?? []) as DivingDoc[]));
   }, []);
+  useEffect(() => {
+    const message = (location.state as { toast?: string } | null)?.toast;
+    if (!message) return;
+    showToast(message);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate, showToast]);
   const move = (index: number, direction: -1 | 1) =>
     setDocs((items) => reorder(items, index, direction));
+  const featuredCount = homeFeaturedCount(docs);
+  const toggleFeatured = async (target: DivingDoc) => {
+    if (!target.id) return;
+    const wasFeatured = Boolean(target.home_featured);
+    const nextFeatured = !wasFeatured;
+    if (nextFeatured && !canFeatureDoc(docs, target)) {
+      showToast('ホームに表示できる資料は4件までです。');
+      return;
+    }
+
+    setDocs((items) =>
+      items.map((item) => (item.id === target.id ? { ...item, home_featured: nextFeatured } : item))
+    );
+    const result = await requireSupabase()
+      .from('docs')
+      .update({ home_featured: nextFeatured })
+      .eq('id', target.id);
+    if (result.error) {
+      setDocs((items) =>
+        items.map((item) =>
+          item.id === target.id ? { ...item, home_featured: wasFeatured } : item
+        )
+      );
+      showToast(result.error.message || 'ホーム表示を更新できませんでした。');
+      return;
+    }
+    await refreshPublic();
+    showToast(nextFeatured ? 'ホームに表示します。' : 'ホーム表示から外しました。');
+  };
+  const remove = async (target: DivingDoc) => {
+    if (!target.id) return;
+    const result = await requireSupabase().from('docs').delete().eq('id', target.id);
+    if (result.error) {
+      showToast(result.error.message || '資料を削除できませんでした。');
+      return;
+    }
+    setDocs((items) => items.filter((item) => item.id !== target.id));
+    await refreshPublic();
+    showToast('資料を削除しました。');
+  };
   const saveOrder = async () => {
     const result = await requireSupabase().rpc('reorder_docs', {
       p_ids: docs.map((doc) => doc.id)
@@ -576,6 +638,9 @@ export function AdminDocsListPage() {
           </button>
         </div>
       )}
+      <p className="field-help">
+        ホームに表示できる資料は {HOME_FEATURED_LIMIT} 件までです（現在 {featuredCount} 件）。
+      </p>
       <div className="admin-list">
         {docs.map((doc, index) =>
           reordering ? (
@@ -607,16 +672,36 @@ export function AdminDocsListPage() {
               </button>
             </article>
           ) : (
-            <Link className="panel news-row" key={doc.id} to={'/admin/docs/' + doc.id}>
-              <span className="meta">
-                {doc.status === 'published' ? '公開中' : '下書き'} ・ 並び順 {doc.sort_order}
-              </span>
-              <b>{doc.title}</b>
-              <span>{doc.slug}</span>
-            </Link>
+            <article className="panel admin-list-row" key={doc.id}>
+              <Link className="news-row" to={'/admin/docs/' + doc.id}>
+                <span className="meta">
+                  {doc.status === 'published' ? '公開中' : '下書き'} ・ 並び順 {doc.sort_order}
+                </span>
+                <b>{doc.title}</b>
+                <span>{doc.slug}</span>
+              </Link>
+              <div className="admin-row-actions">
+                <label className="feature-toggle">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(doc.home_featured)}
+                    disabled={!doc.home_featured && featuredCount >= HOME_FEATURED_LIMIT}
+                    onChange={() => void toggleFeatured(doc)}
+                  />
+                  ホームに表示
+                </label>
+                <ConfirmButton
+                  className="button-danger"
+                  label="削除"
+                  message={`「${doc.title}」を削除しますか？この操作は取り消せません。`}
+                  onConfirm={() => remove(doc)}
+                />
+              </div>
+            </article>
           )
         )}
       </div>
+      <Toast message={toast} />
     </>
   );
 }
@@ -625,7 +710,11 @@ export function AdminDocEditorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { refreshPublic } = useAppData();
+  const { message: toast, showToast } = useToast();
   const [doc, setDoc] = useState<DivingDoc>(blankDoc);
+  const [featureDocs, setFeatureDocs] = useState<Pick<DivingDoc, 'id' | 'home_featured'>[] | null>(
+    null
+  );
   const [chooseTemplate, setChooseTemplate] = useState(!id);
   const [tab, setTab] = useState<'form' | 'preview'>('form');
   const [dirty, setDirty] = useState(false);
@@ -645,6 +734,14 @@ export function AdminDocEditorPage() {
       });
   }, [id]);
   useEffect(() => {
+    void requireSupabase()
+      .from('docs')
+      .select('id,home_featured')
+      .then(({ data }) =>
+        setFeatureDocs((data ?? []) as Pick<DivingDoc, 'id' | 'home_featured'>[])
+      );
+  }, []);
+  useEffect(() => {
     if (!dirty) return;
     const warn = (event: BeforeUnloadEvent) => {
       event.preventDefault();
@@ -658,6 +755,52 @@ export function AdminDocEditorPage() {
     setDirty(true);
   };
   const changeBody = (value: DocBody) => change('body', value);
+  const toggleFeatured = async () => {
+    if (!doc.id || !featureDocs) return;
+    const wasFeatured = Boolean(doc.home_featured);
+    const nextFeatured = !wasFeatured;
+    if (nextFeatured && !canFeatureDoc(featureDocs, doc)) {
+      showToast('ホームに表示できる資料は4件までです。');
+      return;
+    }
+
+    setDoc((current) => ({ ...current, home_featured: nextFeatured }));
+    setFeatureDocs(
+      (items) =>
+        items?.map((item) =>
+          item.id === doc.id ? { ...item, home_featured: nextFeatured } : item
+        ) ?? null
+    );
+    const result = await requireSupabase()
+      .from('docs')
+      .update({ home_featured: nextFeatured })
+      .eq('id', doc.id);
+    if (result.error) {
+      setDoc((current) => ({ ...current, home_featured: wasFeatured }));
+      setFeatureDocs(
+        (items) =>
+          items?.map((item) =>
+            item.id === doc.id ? { ...item, home_featured: wasFeatured } : item
+          ) ?? null
+      );
+      setError(result.error.message || 'ホーム表示を更新できませんでした。');
+      showToast('ホーム表示を更新できませんでした。');
+      return;
+    }
+    await refreshPublic();
+    showToast(nextFeatured ? 'ホームに表示します。' : 'ホーム表示から外しました。');
+  };
+  const remove = async () => {
+    if (!doc.id) return;
+    const result = await requireSupabase().from('docs').delete().eq('id', doc.id);
+    if (result.error) {
+      setError(result.error.message || '資料を削除できませんでした。');
+      showToast('資料を削除できませんでした。');
+      return;
+    }
+    await refreshPublic();
+    navigate('/admin/docs', { replace: true, state: { toast: '資料を削除しました。' } });
+  };
   const upload = async (file: File) => {
     const jpeg = await resizeToJpeg(file);
     const path = 'docs/' + crypto.randomUUID() + '.jpg';
@@ -725,7 +868,19 @@ export function AdminDocEditorPage() {
         </button>
       </div>
       {tab === 'preview' ? (
-        <DocContent doc={{ ...doc, body }} preview />
+        <>
+          <DocContent doc={{ ...doc, body }} preview />
+          {doc.id && (
+            <div className="button-row">
+              <ConfirmButton
+                className="button-danger"
+                label="削除"
+                message={`「${doc.title}」を削除しますか？この操作は取り消せません。`}
+                onConfirm={remove}
+              />
+            </div>
+          )}
+        </>
       ) : (
         <div className="panel form-panel">
           <div className="form-grid">
@@ -772,6 +927,24 @@ export function AdminDocEditorPage() {
                 value={doc.sort_order}
                 onChange={(event) => change('sort_order', Number(event.target.value))}
               />
+            </label>
+            <label className="feature-toggle">
+              <input
+                type="checkbox"
+                checked={Boolean(doc.home_featured)}
+                disabled={
+                  !doc.id ||
+                  !featureDocs ||
+                  (!doc.home_featured && !canFeatureDoc(featureDocs, doc))
+                }
+                onChange={() => void toggleFeatured()}
+              />
+              ホームに表示
+              <span className="field-help">
+                {doc.id
+                  ? `ホームに表示できる資料は${HOME_FEATURED_LIMIT}件までです（現在${homeFeaturedCount(featureDocs ?? [])}件）。`
+                  : '資料を保存後に設定できます。'}
+              </span>
             </label>
             <label>
               リード文
@@ -870,12 +1043,21 @@ export function AdminDocEditorPage() {
             <button className="button" onClick={() => void save()}>
               保存する
             </button>
+            {doc.id && (
+              <ConfirmButton
+                className="button-danger"
+                label="削除"
+                message={`「${doc.title}」を削除しますか？この操作は取り消せません。`}
+                onConfirm={remove}
+              />
+            )}
             <Link className="button-secondary" to="/admin/docs">
               一覧に戻る
             </Link>
           </div>
         </div>
       )}
+      <Toast message={toast} />
     </>
   );
 }

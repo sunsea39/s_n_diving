@@ -24,7 +24,10 @@ import {
   bookmarkAnchor,
   reorderSortOrders,
   totalDiveCount,
-  adminMenuForRole
+  adminMenuForRole,
+  canFeatureDoc,
+  HOME_FEATURED_LIMIT,
+  selectHomeDocs
 } from './logic';
 import type { Accident, DivingDoc, EquipmentSection, NewsItem } from '../types';
 import { InlineBold } from '../components/InlineBold';
@@ -171,6 +174,58 @@ describe('v2.2 pure helpers', () => {
     ]);
   });
   it('adds initial and logged dive counts', () => expect(totalDiveCount(12, 3)).toBe(15));
+});
+
+describe('ホーム掲載資料', () => {
+  const doc = (id: string, patch: Partial<DivingDoc> = {}): DivingDoc => ({
+    id,
+    slug: id,
+    title: id,
+    category: 'テスト',
+    summary: '',
+    body: { intro: '', blocks: [], disclaimer: '' },
+    status: 'published',
+    sort_order: 0,
+    home_featured: false,
+    ...patch
+  });
+
+  it('掲載指定された公開資料を sort_order 順で優先する', () => {
+    const docs = [
+      doc('newest', { updated_at: '2026-10-04T00:00:00Z', sort_order: 30 }),
+      doc('featured-later', { home_featured: true, sort_order: 20 }),
+      doc('featured-first', { home_featured: true, sort_order: 10 }),
+      doc('draft-featured', { home_featured: true, status: 'draft', sort_order: 1 })
+    ];
+
+    expect(selectHomeDocs(docs).map((item) => item.id)).toEqual([
+      'featured-first',
+      'featured-later'
+    ]);
+  });
+
+  it('掲載指定がなければ最新の公開資料を最大4件表示する', () => {
+    const docs = Array.from({ length: 5 }, (_, index) =>
+      doc(`doc-${index}`, { updated_at: `2026-10-0${index + 1}T00:00:00Z` })
+    );
+
+    expect(selectHomeDocs(docs).map((item) => item.id)).toEqual([
+      'doc-4',
+      'doc-3',
+      'doc-2',
+      'doc-1'
+    ]);
+  });
+
+  it('4件に達した場合も、既に掲載中の資料は解除できる', () => {
+    const featured = Array.from({ length: HOME_FEATURED_LIMIT }, (_, index) =>
+      doc(`featured-${index}`, { home_featured: true })
+    );
+    const candidate = doc('candidate');
+
+    expect(canFeatureDoc(featured, candidate)).toBe(false);
+    expect(canFeatureDoc(featured, featured[0])).toBe(true);
+  });
 });
 
 describe('合言葉の結果表示', () => {

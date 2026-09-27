@@ -15,6 +15,7 @@ const doc: DivingDoc = {
   summary: '',
   status: 'published',
   sort_order: 1,
+  home_featured: false,
   body: {
     intro: '持ち歩くための導入です。',
     disclaimer: '',

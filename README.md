@@ -1,5 +1,11 @@
 # N×S_Diving
 
+## v2.8 migration
+
+Apply `supabase/migrations/20261001000000_v2_8.sql` after v2.4. It is additive and re-runnable. It adds `docs.home_featured` and an advisory-lock-protected database trigger that limits home-featured documents to four. No additional grants or policies are required.
+
+After applying the migration, owners can select up to four documents with **ホームに表示** in `/admin/docs`. The home page shows those published documents in `sort_order`; when none are selected, it falls back to the newest four published documents.
+
 ## v2.4 migration and push delivery
 
 Apply `supabase/migrations/20260930000000_v2_4.sql` after v2.3. It is additive and re-runnable. It adds headband avatars, in-app notification events, per-user push subscriptions, delivery triggers, and the five-minute notification cron job.

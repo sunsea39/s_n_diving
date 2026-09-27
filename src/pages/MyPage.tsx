@@ -215,7 +215,7 @@ function PushGuideDialog({
 
 export function MyPage() {
   usePageTitle('マイページ');
-  const { user, profile, refreshSession } = useAppData();
+  const { user, profile, refreshSession, docs } = useAppData();
   const [tab, setTab] = useState<Tab>('profile');
   const [draft, setDraft] = useState<Profile | null>(profile);
   const [notes, setNotes] = useState<GearNote[]>([]);
@@ -303,6 +303,7 @@ export function MyPage() {
   }, [refreshPushState, tab]);
   if (!user) return <Navigate to="/login?next=%2Fmypage" replace />;
   if (!draft) return <p>読み込み中です…</p>;
+  const availableDocSlugs = new Set(docs.map((doc) => doc.slug));
   const saveProfile = async (fields: Partial<Profile>) => {
     setError('');
     setMessage('');
@@ -912,21 +913,30 @@ export function MyPage() {
         <section>
           <h2>ブックマーク</h2>
           <div className="admin-list">
-            {bookmarks.map((item) => (
-              <article className="panel" key={item.id}>
-                <Link to={`/docs/${item.doc_slug}${item.anchor ? `#${item.anchor}` : ''}`}>
-                  <b>{item.doc_slug}</b> ・ {item.label}
-                </Link>
-                <button
-                  onClick={async () => {
-                    await requireSupabase().from('bookmarks').delete().eq('id', item.id);
-                    await load();
-                  }}
-                >
-                  削除
-                </button>
-              </article>
-            ))}
+            {bookmarks.map((item) => {
+              const available = availableDocSlugs.has(item.doc_slug);
+              return (
+                <article className="panel" key={item.id}>
+                  {available ? (
+                    <Link to={`/docs/${item.doc_slug}${item.anchor ? `#${item.anchor}` : ''}`}>
+                      <b>{item.doc_slug}</b> ・ {item.label}
+                    </Link>
+                  ) : (
+                    <p className="missing-link">
+                      <b>{item.doc_slug}</b> 繝ｻ {item.label}（この資料は削除されました）
+                    </p>
+                  )}
+                  <button
+                    onClick={async () => {
+                      await requireSupabase().from('bookmarks').delete().eq('id', item.id);
+                      await load();
+                    }}
+                  >
+                    削除
+                  </button>
+                </article>
+              );
+            })}
             {!bookmarks.length && <p className="empty">ブックマークはまだありません。</p>}
           </div>
         </section>

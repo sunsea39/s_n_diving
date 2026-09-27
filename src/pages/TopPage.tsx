@@ -4,7 +4,7 @@ import { DocCard } from '../components/DocContent';
 import { HeroScene } from '../components/HeroScene';
 import { ThreadRow } from '../components/ThreadRow';
 import { useAppData } from '../context/AppDataContext';
-import { formatNextDive, latestDocs, relativeDate, selectNextDive } from '../lib/logic';
+import { formatNextDive, relativeDate, selectHomeDocs, selectNextDive } from '../lib/logic';
 import { requireSupabase } from '../lib/supabase';
 import { usePageTitle } from '../lib/pageTitle';
 import type { Profile, Thread } from '../types';
@@ -57,7 +57,7 @@ export function TopPage() {
   const { docs, news, accidents, isBoardMember, loading, user } = useAppData();
   const text = usePageText('home');
   const nextDive = selectNextDive(news);
-  const newestDocs = latestDocs(docs);
+  const homeDocs = selectHomeDocs(docs);
   const hero = useRef<HTMLDivElement>(null);
   const [heroInView, setHeroInView] = useState(true);
 
@@ -113,10 +113,14 @@ export function TopPage() {
           <section className="next-dive">
             <span className="next-dive-kicker">NEXT DIVE</span>
             {isBoardMember && nextDive ? (
-              <p>
-                <b>{formatNextDive(nextDive)}</b>
-                {nextDive.place && <span> ・ {nextDive.place}</span>}
-                {nextDive.staff && <small>担当：{nextDive.staff}</small>}
+              <p className="next-dive-details">
+                <span className="next-dive-place">
+                  <b>{formatNextDive(nextDive)}</b>
+                  {nextDive.place && <span> ・ {nextDive.place}</span>}
+                  {nextDive.staff?.trim() && (
+                    <span className="next-dive-staff">担当：{nextDive.staff}</span>
+                  )}
+                </span>
               </p>
             ) : isBoardMember ? (
               <p>次回の予定は未定です。</p>
@@ -164,7 +168,7 @@ export function TopPage() {
           <Link to="/docs">一覧へ</Link>
         </div>
         <div className="card-grid">
-          {newestDocs.map((doc) => (
+          {homeDocs.map((doc) => (
             <DocCard doc={doc} key={doc.slug} />
           ))}
         </div>

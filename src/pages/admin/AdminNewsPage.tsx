@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { ConfirmButton } from '../../components/ConfirmButton';
+import { Toast } from '../../components/Toast';
 import { useAppData } from '../../context/AppDataContext';
 import { usePageTitle } from '../../lib/pageTitle';
 import { requireSupabase } from '../../lib/supabase';
+import { useToast } from '../../lib/toast';
 import type { NewsItem } from '../../types';
 
 interface NewsDraft {
@@ -32,6 +35,10 @@ const blankNews = (): NewsDraft => ({
 
 export function AdminNewsListPage() {
   usePageTitle('お知らせ管理');
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { refreshPublic } = useAppData();
+  const { message: toast, showToast } = useToast();
   const [items, setItems] = useState<NewsItem[]>([]);
 
   useEffect(() => {
@@ -43,6 +50,22 @@ export function AdminNewsListPage() {
       .then(({ data }) => setItems((data ?? []) as NewsItem[]));
   }, []);
 
+  useEffect(() => {
+    const message = (location.state as { toast?: string } | null)?.toast;
+    if (!message) return;
+    showToast(message);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate, showToast]);
+  const remove = async (target: NewsItem) => {
+    const result = await requireSupabase().from('news').delete().eq('id', target.id);
+    if (result.error) {
+      showToast(result.error.message || 'お知らせを削除できませんでした。');
+      return;
+    }
+    setItems((current) => current.filter((item) => item.id !== target.id));
+    await refreshPublic();
+    showToast('お知らせを削除しました。');
+  };
   return (
     <>
       <div className="section-heading">
@@ -56,18 +79,29 @@ export function AdminNewsListPage() {
       </div>
       <div className="admin-list">
         {items.map((item) => (
-          <Link className="panel news-row" key={item.id} to={`/admin/news/${item.id}`}>
-            <span className="meta">
-              {item.pinned && '固定 ・ '}
-              {item.category === 'dive' ? 'ダイビング ・ ' : 'その他 ・ '}
-              {item.published_at
-                ? new Date(item.published_at).toLocaleString('ja-JP')
-                : '公開日時なし'}
-            </span>
-            <b>{item.title}</b>
-          </Link>
+          <article className="panel admin-list-row" key={item.id}>
+            <Link className="news-row" to={`/admin/news/${item.id}`}>
+              <span className="meta">
+                {item.pinned && '固定 ・ '}
+                {item.category === 'dive' ? 'ダイビング ・ ' : 'その他 ・ '}
+                {item.published_at
+                  ? new Date(item.published_at).toLocaleString('ja-JP')
+                  : '公開日時なし'}
+              </span>
+              <b>{item.title}</b>
+            </Link>
+            <div className="admin-row-actions">
+              <ConfirmButton
+                className="button-danger"
+                label="削除"
+                message={`「${item.title}」を削除しますか？この操作は取り消せません。`}
+                onConfirm={() => remove(item)}
+              />
+            </div>
+          </article>
         ))}
       </div>
+      <Toast message={toast} />
     </>
   );
 }
@@ -76,6 +110,7 @@ export function AdminNewsEditorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { refreshPublic } = useAppData();
+  const { message: toast, showToast } = useToast();
   const [item, setItem] = useState<NewsDraft>(blankNews);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState('');
@@ -113,6 +148,17 @@ export function AdminNewsEditorPage() {
     setItem((current) => ({ ...current, [key]: value }));
   };
 
+  const remove = async () => {
+    if (!item.id) return;
+    const result = await requireSupabase().from('news').delete().eq('id', item.id);
+    if (result.error) {
+      setError(result.error.message || 'お知らせを削除できませんでした。');
+      showToast('お知らせを削除できませんでした。');
+      return;
+    }
+    await refreshPublic();
+    navigate('/admin/news', { replace: true, state: { toast: 'お知らせを削除しました。' } });
+  };
   const save = async () => {
     if (!item.title.trim() || !item.body.trim())
       return setError('タイトルと本文を入力してください。');
@@ -240,11 +286,20 @@ export function AdminNewsEditorPage() {
           <button className="button" onClick={() => void save()}>
             保存する
           </button>
+          {item.id && (
+            <ConfirmButton
+              className="button-danger"
+              label="削除"
+              message={`「${item.title}」を削除しますか？この操作は取り消せません。`}
+              onConfirm={remove}
+            />
+          )}
           <Link className="button-secondary" to="/admin/news">
             一覧に戻る
           </Link>
         </div>
       </div>
+      <Toast message={toast} />
     </>
   );
 }

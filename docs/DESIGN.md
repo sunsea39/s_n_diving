@@ -7,6 +7,12 @@
 - ヒーローの kicker、見出し、リード、ボタンは左から右へ各 900ms、260ms 間隔で現れる。明暗テーマとも本文の背景とのコントラスト比は 4.5 以上にする。
 - 資料の小さなブックマークは絶対配置せず、見出し行の右端に 40px の操作領域で置く。機材では折りたたみ行の +/− の左隣に独立したボタンとして置き、ブックマーク操作ではアコーディオンを開閉しない。印刷・要点切替ボタン行の下は、資料・事故事例とも 20px 空ける。
 
+## v2.8
+
+- Owners can delete documents, news, and accident cases from both their list rows and editor pages through the in-page confirmation dialog. Successful deletes refresh shared AppData and show a transient toast. Missing bookmarked documents and notification targets remain visible as unavailable rather than navigating to a dead target; related-document views render only records still present in AppData.
+- The home document rail uses up to four published documents marked `home_featured`, sorted by `sort_order`. If there are no featured documents, it uses the latest four published documents. The owner UI saves the checkbox immediately, disables unselected documents once four are selected, and restores the prior check state if the database rejects the update.
+- NEXT DIVE uses a wrapping flex row: the date/place stays at the left and non-empty staff text keeps the place text size and right alignment, including after it wraps.
+
 ## v2.6
 
 - モバイル下部タブは上 6px、下 `calc(12px + env(safe-area-inset-bottom, 0px))` の余白を取り、実高を `--tabbar-h` に集約する。本文とフッターはこの変数で下余白を確保し、固定タブに隠れない。

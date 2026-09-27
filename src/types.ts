@@ -118,6 +118,7 @@ export interface DivingDoc {
   body: DocBody | LegacyDocBody;
   status: 'draft' | 'published';
   sort_order: number;
+  home_featured: boolean;
   updated_at?: string;
 }
 

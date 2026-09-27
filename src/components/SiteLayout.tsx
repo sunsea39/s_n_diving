@@ -20,6 +20,33 @@ import {
   MenuIcon
 } from './icons';
 
+function NotificationEventRow({
+  event,
+  available,
+  onNavigate
+}: {
+  event: NotificationEvent;
+  available: boolean;
+  onNavigate: () => void;
+}) {
+  const content = (
+    <>
+      <strong>{available ? event.title : 'このお知らせは削除されました'}</strong>
+      {available && event.body && <span>{event.body}</span>}
+      <time dateTime={event.created_at}>
+        {new Date(event.created_at).toLocaleDateString('ja-JP')}
+      </time>
+    </>
+  );
+  return available ? (
+    <Link to={event.url} onClick={onNavigate}>
+      {content}
+    </Link>
+  ) : (
+    <div className="notification-event-missing">{content}</div>
+  );
+}
+
 function NotificationBell({
   open,
   onOpenChange
@@ -27,15 +54,17 @@ function NotificationBell({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const { user, profile, refreshSession } = useAppData();
+  const { user, profile, refreshSession, news, accidents } = useAppData();
   const location = useLocation();
   const [events, setEvents] = useState<NotificationEvent[]>([]);
+  const [availableEventIds, setAvailableEventIds] = useState<Set<number> | null>(null);
   const bell = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLElement>(null);
   const [panelRight, setPanelRight] = useState<number | null>(null);
   useEffect(() => {
     if (!user || !profile) {
       setEvents([]);
+      setAvailableEventIds(new Set());
       return;
     }
     void requireSupabase()
@@ -45,6 +74,42 @@ function NotificationBell({
       .limit(20)
       .then(({ data }) => setEvents((data as NotificationEvent[] | null) ?? []));
   }, [profile, user]);
+  useEffect(() => {
+    if (!events.length) {
+      setAvailableEventIds(new Set());
+      return;
+    }
+    let cancelled = false;
+    const loadAvailableTargets = async () => {
+      const client = requireSupabase();
+      const newsIds = events.filter((event) => event.kind === 'news').map((event) => event.ref_id);
+      const accidentIds = events
+        .filter((event) => event.kind === 'accident')
+        .map((event) => event.ref_id);
+      const availableRefs = new Set<string>();
+      if (newsIds.length) {
+        const { data } = await client.from('news').select('id').in('id', newsIds);
+        (data ?? []).forEach((item) => availableRefs.add(`news:${item.id}`));
+      }
+      if (accidentIds.length) {
+        const { data } = await client.from('accidents').select('id').in('id', accidentIds);
+        (data ?? []).forEach((item) => availableRefs.add(`accident:${item.id}`));
+      }
+      if (!cancelled) {
+        setAvailableEventIds(
+          new Set(
+            events
+              .filter((event) => availableRefs.has(`${event.kind}:${event.ref_id}`))
+              .map((event) => event.id)
+          )
+        );
+      }
+    };
+    void loadAvailableTargets();
+    return () => {
+      cancelled = true;
+    };
+  }, [accidents, events, news]);
   const closePanel = useCallback(
     (returnFocus = false) => {
       onOpenChange(false);
@@ -149,13 +214,12 @@ function NotificationBell({
             <p>新しいお知らせはありません。</p>
           ) : (
             events.map((event) => (
-              <Link key={event.id} to={event.url} onClick={() => onOpenChange(false)}>
-                <strong>{event.title}</strong>
-                {event.body && <span>{event.body}</span>}
-                <time dateTime={event.created_at}>
-                  {new Date(event.created_at).toLocaleDateString('ja-JP')}
-                </time>
-              </Link>
+              <NotificationEventRow
+                available={availableEventIds?.has(event.id) ?? true}
+                event={event}
+                key={event.id}
+                onNavigate={() => onOpenChange(false)}
+              />
             ))
           )}
         </section>

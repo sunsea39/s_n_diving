@@ -351,7 +351,8 @@ main,
   width: 19px;
   height: 19px;
 }
-.notification-panel a {
+.notification-panel a,
+.notification-event-missing {
   display: grid;
   gap: 3px;
   padding: 10px 0;
@@ -360,6 +361,7 @@ main,
   text-decoration: none;
 }
 .notification-panel a span,
+.notification-event-missing span,
 .notification-panel time {
   color: var(--muted);
   font-size: 13px;
@@ -586,6 +588,20 @@ main {
   color: var(--teal);
   background: var(--panel);
 }
+.app-toast {
+  position: fixed;
+  z-index: 70;
+  right: 16px;
+  bottom: calc(16px + var(--tabbar-h));
+  max-width: min(420px, calc(100vw - 32px));
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--teal);
+  border-radius: 10px;
+  color: var(--teal);
+  background: var(--panel);
+  box-shadow: 0 8px 24px var(--shadow);
+}
 .button,
 .button-secondary,
 .button-danger {
@@ -742,6 +758,21 @@ main {
 .next-dive b {
   color: var(--on-accent);
   font-size: 18px;
+}
+.next-dive-details {
+  display: block;
+}
+.next-dive-place {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 6px;
+}
+.next-dive-staff {
+  margin-left: auto;
+  color: var(--on-accent);
+  font-size: inherit;
+  text-align: right;
 }
 .hero-scene {
   position: relative;
@@ -1789,6 +1820,38 @@ textarea {
 }
 .admin-list .panel {
   padding: 14px;
+}
+.missing-link {
+  margin: 0;
+  color: var(--muted);
+}
+.admin-list-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.admin-list-row > .news-row {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.admin-row-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.feature-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.feature-toggle input {
+  width: auto;
+}
+.feature-toggle .field-help {
+  flex-basis: 100%;
 }
 
 .brand {

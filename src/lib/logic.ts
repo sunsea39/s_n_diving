@@ -350,6 +350,27 @@ export function latestDocs(docs: DivingDoc[], limit = 4): DivingDoc[] {
     .slice(0, limit);
 }
 
+export const HOME_FEATURED_LIMIT = 4;
+
+type HomeFeaturedDoc = Pick<DivingDoc, 'id' | 'home_featured'>;
+
+export function homeFeaturedCount(docs: HomeFeaturedDoc[]): number {
+  return docs.filter((doc) => doc.home_featured).length;
+}
+
+export function canFeatureDoc(docs: HomeFeaturedDoc[], doc: HomeFeaturedDoc): boolean {
+  return doc.home_featured || homeFeaturedCount(docs) < HOME_FEATURED_LIMIT;
+}
+
+export function selectHomeDocs(docs: DivingDoc[], limit = HOME_FEATURED_LIMIT): DivingDoc[] {
+  const published = docs.filter((doc) => doc.status === 'published');
+  const featured = published
+    .filter((doc) => doc.home_featured)
+    .sort((first, second) => first.sort_order - second.sort_order)
+    .slice(0, limit);
+  return featured.length ? featured : latestDocs(published, limit);
+}
+
 export function docBodyForSave(doc: DivingDoc): DocBody {
   return normalizeDocBody(doc.body);
 }
