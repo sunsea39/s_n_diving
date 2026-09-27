@@ -398,7 +398,10 @@ export function SiteLayout() {
       {!location.pathname.startsWith('/admin') && (
         <BackToTop hidden={open || notificationOpen} visible={backToTopVisible} />
       )}
-      <main key={location.pathname} className="route-main">
+      <main
+        key={location.pathname}
+        className={`route-main${location.pathname === '/' ? ' route-main--home' : ''}`}
+      >
         <PageNotice />
         <Outlet />
       </main>

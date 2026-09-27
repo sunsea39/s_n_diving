@@ -51,21 +51,33 @@ export function DocContent({
             id={block.type === 'heading' ? bookmarkAnchor(block.text) : undefined}
             key={`${block.type}-${index}`}
           >
-            {block.type === 'heading' && !print && !preview && (
-              <BookmarkButton
+            {block.type === 'heading' ? (
+              <div className="block-heading-row">
+                <ContentBlock
+                  block={block}
+                  preview={preview}
+                  print={print}
+                  checklistKey={preview || print ? undefined : `doc:${doc.slug}:check`}
+                  docSlug={doc.slug}
+                />
+                {!print && !preview && (
+                  <BookmarkButton
+                    docSlug={doc.slug}
+                    anchor={bookmarkAnchor(block.text)}
+                    label={block.text}
+                    small
+                  />
+                )}
+              </div>
+            ) : (
+              <ContentBlock
+                block={block}
+                preview={preview}
+                print={print}
+                checklistKey={preview || print ? undefined : `doc:${doc.slug}:check`}
                 docSlug={doc.slug}
-                anchor={bookmarkAnchor(block.text)}
-                label={block.text}
-                small
               />
             )}
-            <ContentBlock
-              block={block}
-              preview={preview}
-              print={print}
-              checklistKey={preview || print ? undefined : `doc:${doc.slug}:check`}
-              docSlug={doc.slug}
-            />
           </section>
         ))}
       </div>

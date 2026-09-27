@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { DocCard } from '../components/DocContent';
 import { HeroScene } from '../components/HeroScene';
@@ -58,49 +58,80 @@ export function TopPage() {
   const text = usePageText('home');
   const nextDive = selectNextDive(news);
   const newestDocs = latestDocs(docs);
+  const hero = useRef<HTMLDivElement>(null);
+  const [heroInView, setHeroInView] = useState(true);
+
+  useEffect(() => {
+    const element = hero.current;
+    if (!element || !('IntersectionObserver' in window)) return;
+    const observer = new IntersectionObserver(([entry]) => setHeroInView(entry.isIntersecting), {
+      threshold: 0
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <>
       <section className="hero">
-        <p className="kicker">{text.kicker}</p>
-        <h1>{text.title}</h1>
-        <p className="lead">{text.lead}</p>
-        <div className="button-row">
-          <Link className="button" to="/docs">
-            資料を見る
-          </Link>
-          {isBoardMember ? (
-            <Link className="button-secondary" to="/board">
-              掲示板を見る
-            </Link>
-          ) : (
-            <Link className="button-secondary" to="/login?next=/board">
-              ログインして見る
-            </Link>
-          )}
-        </div>
-        <HeroScene />
-        <section className="next-dive">
-          <span className="next-dive-kicker">NEXT DIVE</span>
-          {isBoardMember && nextDive ? (
-            <p>
-              <b>{formatNextDive(nextDive)}</b>
-              {nextDive.place && <span> ・ {nextDive.place}</span>}
-              {nextDive.staff && <small>担当：{nextDive.staff}</small>}
-            </p>
-          ) : isBoardMember ? (
-            <p>次回の予定は未定です。</p>
-          ) : user ? (
-            <p>承認されると次のダイビング予定が見られます。</p>
-          ) : (
-            <div>
-              <p>次のダイビング予定は、ログインした仲間だけが見られます。</p>
-              <Link className="button-secondary" to="/login">
-                ログイン
+        <div
+          ref={hero}
+          className="hero-illustration"
+          data-animation-state={heroInView ? 'running' : 'paused'}
+        >
+          <div className="hero-sky" aria-hidden="true">
+            <span className="hero-sun" />
+            <span className="hero-moon" />
+            <span className="hero-star hero-star--1" />
+            <span className="hero-star hero-star--2" />
+            <span className="hero-star hero-star--3" />
+            <span className="hero-star hero-star--4" />
+            <span className="hero-star hero-star--5" />
+          </div>
+          <div className="hero-content">
+            <p className="kicker">{text.kicker}</p>
+            <h1>{text.title}</h1>
+            <p className="lead">{text.lead}</p>
+            <div className="button-row">
+              <Link className="button" to="/docs">
+                資料を見る
               </Link>
+              {isBoardMember ? (
+                <Link className="button-secondary" to="/board">
+                  掲示板を見る
+                </Link>
+              ) : (
+                <Link className="button-secondary" to="/login?next=/board">
+                  ログインして見る
+                </Link>
+              )}
             </div>
-          )}
-        </section>
+          </div>
+          <HeroScene animationState={heroInView ? 'running' : 'paused'} />
+        </div>
+        <div className="hero-content">
+          <section className="next-dive">
+            <span className="next-dive-kicker">NEXT DIVE</span>
+            {isBoardMember && nextDive ? (
+              <p>
+                <b>{formatNextDive(nextDive)}</b>
+                {nextDive.place && <span> ・ {nextDive.place}</span>}
+                {nextDive.staff && <small>担当：{nextDive.staff}</small>}
+              </p>
+            ) : isBoardMember ? (
+              <p>次回の予定は未定です。</p>
+            ) : user ? (
+              <p>承認されると次のダイビング予定が見られます。</p>
+            ) : (
+              <div>
+                <p>次のダイビング予定は、ログインした仲間だけが見られます。</p>
+                <Link className="button-secondary" to="/login">
+                  ログイン
+                </Link>
+              </div>
+            )}
+          </section>
+        </div>
       </section>
 
       <section id="news">

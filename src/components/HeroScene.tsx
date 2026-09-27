@@ -1,26 +1,17 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useId } from 'react';
 
-export function HeroScene() {
+export function HeroScene({
+  animationState = 'running'
+}: {
+  animationState?: 'running' | 'paused';
+}) {
   const id = useId().replace(/:/g, '');
   const seaGradientId = `hs-sea-${id}`;
-  const scene = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(true);
-
-  useEffect(() => {
-    const element = scene.current;
-    if (!element || !('IntersectionObserver' in window)) return;
-    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), {
-      threshold: 0
-    });
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
 
   return (
     <div
-      ref={scene}
       className="hero-scene"
-      data-animation-state={inView ? 'running' : 'paused'}
+      data-animation-state={animationState}
       role="img"
       aria-label="海面にダイビングフラッグのブイが浮かび、海中を魚と泡が泳ぐイラスト"
     >
@@ -32,9 +23,6 @@ export function HeroScene() {
             <stop offset="1" className="hs-sea-deep" />
           </linearGradient>
         </defs>
-
-        <rect className="hs-sky" x="0" y="0" width="1200" height="120" />
-        <circle className="hs-sun" cx="960" cy="64" r="34" />
 
         <g className="hs-waves-back">
           <path

@@ -133,24 +133,33 @@ export function EquipmentPanel({
 
   return (
     <section id={bookmarkAnchor(section.name)} className="panel equipment">
-      {docSlug && (
-        <BookmarkButton
-          docSlug={docSlug}
-          anchor={bookmarkAnchor(section.name)}
-          label={`${section.no}. ${section.name}`}
-          small
-        />
-      )}
-      <button className="equipment-toggle" onClick={onToggle} aria-expanded={isOpen}>
-        <img src={assetPath(section.icon)} alt="" />
-        <span>
-          <b>{`${section.no}. ${section.name}`}</b>
-          <small>{section.sub}</small>
-        </span>
-        <span className="chevron" aria-hidden="true">
-          {isOpen ? '−' : '+'}
-        </span>
-      </button>
+      <div className="equipment-heading">
+        <button className="equipment-toggle" onClick={onToggle} aria-expanded={isOpen}>
+          <img src={assetPath(section.icon)} alt="" />
+          <span>
+            <b>{`${section.no}. ${section.name}`}</b>
+            <small>{section.sub}</small>
+          </span>
+        </button>
+        {docSlug && (
+          <BookmarkButton
+            docSlug={docSlug}
+            anchor={bookmarkAnchor(section.name)}
+            label={`${section.no}. ${section.name}`}
+            small
+          />
+        )}
+        <button
+          className="equipment-toggle-affordance"
+          onClick={onToggle}
+          aria-expanded={isOpen}
+          aria-label={`${section.no}. ${section.name}を${isOpen ? '閉じる' : '開く'}`}
+        >
+          <span className="chevron" aria-hidden="true">
+            {isOpen ? '−' : '+'}
+          </span>
+        </button>
+      </div>
       <div className={'equipment-body-wrap ' + (isOpen ? 'open' : '')}>
         <div ref={bodyClip} className="equipment-body-clip" aria-hidden={!isOpen}>
           <div className="equipment-body">
