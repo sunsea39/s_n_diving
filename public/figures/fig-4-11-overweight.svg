@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="ウエイトが重すぎると、かえって疲れる">
+  <rect x="1" y="1" width="638" height="358" rx="16" fill="#FFFFFF" stroke="#D5E6EA" stroke-width="2"/>
+  <text x="24" y="38" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="18" font-weight="700" fill="#0B3C5D" text-anchor="start">ウエイトが重すぎると、かえって疲れる</text>
+  
+  <rect x="24" y="60" width="286" height="240" rx="12" fill="#E3F4EF"/><text x="167" y="90" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="15" font-weight="700" fill="#1B998B" text-anchor="middle">◎ 適正ウエイト</text>
+  <g transform="translate(170 190) rotate(0) scale(0.85)">
+  <rect x="-10" y="-17" width="40" height="11" rx="5.5" fill="#D98E04"/>
+  <rect x="-30" y="-8" width="62" height="18" rx="9" fill="#0B3C5D"/>
+  <circle cx="42" cy="-1" r="10" fill="#0B3C5D"/>
+  <rect x="44" y="-6" width="10" height="7" rx="2" fill="#CDEBE5" stroke="#0B3C5D" stroke-width="2"/>
+  <path d="M-30 -2 L-52 -10 L-56 2 L-30 6 Z" fill="#1B998B"/>
+</g><text x="167" y="270" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="12" font-weight="400" fill="#4F5B62" text-anchor="middle">水平の姿勢で、BCDの空気も少ない</text>
+  <rect x="330" y="60" width="286" height="240" rx="12" fill="#FBE4DE"/><text x="473" y="90" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="15" font-weight="700" fill="#D64527" text-anchor="middle">× 重すぎる</text>
+  <g transform="translate(470 190) rotate(25) scale(0.85)">
+  <rect x="-10" y="-17" width="40" height="11" rx="5.5" fill="#D98E04"/>
+  <rect x="-30" y="-8" width="62" height="18" rx="9" fill="#0B3C5D"/>
+  <circle cx="42" cy="-1" r="10" fill="#0B3C5D"/>
+  <rect x="44" y="-6" width="10" height="7" rx="2" fill="#CDEBE5" stroke="#0B3C5D" stroke-width="2"/>
+  <path d="M-30 -2 L-52 -10 L-56 2 L-30 6 Z" fill="#1B998B"/>
+</g><line x1="440" y1="205" x2="440" y2="255" stroke="#D64527" stroke-width="3" stroke-linecap="round"/><polygon points="440,255 435.6503446588877,245.99552897647322 444.3496553411123,245.99552897647322" fill="#D64527"/><line x1="500" y1="150" x2="500" y2="110" stroke="#D98E04" stroke-width="3" stroke-linecap="round"/><polygon points="500,110 504.3496553411123,119.00447102352678 495.6503446588877,119.00447102352678" fill="#D98E04"/>
+  <text x="473" y="270" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="12" font-weight="400" fill="#4F5B62" text-anchor="middle">足が沈み、BCDに空気を入れすぎて不安定に</text>
+  <text x="24" y="335" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="12" font-weight="400" fill="#7A8A92" text-anchor="start">適正ウエイト：空気をほぼ抜いたBCDで、普通に息を吐いたとき目の高さで浮く程度</text>
+</svg>

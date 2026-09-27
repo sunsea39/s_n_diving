@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAppData } from '../context/AppDataContext';
-import { supabase } from '../lib/supabase';
+import { requireSupabase, supabase } from '../lib/supabase';
+import type { NotificationEvent } from '../types';
 import { ThemePicker, ThemeToggleButton } from './ThemeControls';
 import { Avatar } from './Avatar';
 import { FooterScene } from './FooterScene';
 import {
   AccidentIcon,
   BoardIcon,
+  BellIcon,
   CloseIcon,
   DocsIcon,
   HomeIcon,
@@ -16,6 +18,67 @@ import {
   LockIcon,
   MenuIcon
 } from './icons';
+
+function NotificationBell() {
+  const { user, profile, refreshSession } = useAppData();
+  const [events, setEvents] = useState<NotificationEvent[]>([]);
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!user || !profile) {
+      setEvents([]);
+      return;
+    }
+    void requireSupabase()
+      .from('notification_events')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(20)
+      .then(({ data }) => setEvents((data as NotificationEvent[] | null) ?? []));
+  }, [profile, user]);
+  if (!user || !profile) return null;
+  const unread = events.filter((event) => event.created_at > profile.notifications_seen_at).length;
+  const markSeen = () => {
+    setOpen((wasOpen) => !wasOpen);
+    if (open || unread === 0) return;
+    const seenAt = new Date().toISOString();
+    void requireSupabase()
+      .from('profiles')
+      .update({ notifications_seen_at: seenAt })
+      .eq('id', user.id)
+      .then(() => refreshSession());
+  };
+  return (
+    <div className="notification-menu">
+      <button
+        className="notification-bell"
+        onClick={markSeen}
+        aria-expanded={open}
+        aria-label="お知らせ"
+      >
+        <BellIcon />
+        {unread > 0 && <span className="notification-badge">{unread > 9 ? '9+' : unread}</span>}
+      </button>
+      {open && (
+        <section className="notification-panel" aria-label="お知らせ一覧">
+          <b>お知らせ</b>
+          {events.length === 0 ? (
+            <p>新しいお知らせはありません。</p>
+          ) : (
+            events.map((event) => (
+              <Link key={event.id} to={event.url} onClick={() => setOpen(false)}>
+                <strong>{event.title}</strong>
+                {event.body && <span>{event.body}</span>}
+                <time dateTime={event.created_at}>
+                  {new Date(event.created_at).toLocaleDateString('ja-JP')}
+                </time>
+              </Link>
+            ))
+          )}
+        </section>
+      )}
+    </div>
+  );
+}
 
 function PageNotice() {
   const { configured } = useAppData();
@@ -145,6 +208,10 @@ export function SiteLayout() {
   const location = useLocation();
   const { user, profile } = useAppData();
   useEffect(() => {
+    document.documentElement.classList.toggle('admin-mode', location.pathname.startsWith('/admin'));
+    return () => document.documentElement.classList.remove('admin-mode');
+  }, [location.pathname]);
+  useEffect(() => {
     const update = () => setScrolled(window.scrollY > 0);
     update();
     window.addEventListener('scroll', update, { passive: true });
@@ -180,6 +247,7 @@ export function SiteLayout() {
             <NavLink to="/admin">管理</NavLink>
           </nav>
           <ThemeToggleButton />
+          <NotificationBell />
           {user && profile && (
             <Link className="header-avatar" to="/mypage">
               <Avatar

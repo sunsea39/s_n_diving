@@ -19,12 +19,14 @@ type ThemeContextValue = {
 export const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function applyTheme(preference: ThemePreference, systemIsDark = getSystemIsDark()): ResolvedTheme {
+  document.documentElement.classList.add('theme-switching');
   const resolvedTheme = resolveTheme(preference, systemIsDark);
   document.documentElement.dataset.theme = resolvedTheme;
   document.documentElement.style.colorScheme = resolvedTheme;
   document
     .querySelector('meta[name="theme-color"]')
     ?.setAttribute('content', themeColor(resolvedTheme));
+  window.setTimeout(() => document.documentElement.classList.remove('theme-switching'), 250);
   return resolvedTheme;
 }
 
@@ -45,13 +47,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     media.addEventListener('change', onChange);
     return () => media.removeEventListener('change', onChange);
   }, [preference]);
-
-  useEffect(() => {
-    const frame = window.requestAnimationFrame(() =>
-      document.documentElement.classList.add('theme-ready')
-    );
-    return () => window.cancelAnimationFrame(frame);
-  }, []);
 
   const value = useMemo(
     () => ({ preference, resolvedTheme, setPreference }),

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="バディとは手の届く距離で">
+  <rect x="1" y="1" width="638" height="358" rx="16" fill="#FFFFFF" stroke="#D5E6EA" stroke-width="2"/>
+  <text x="24" y="38" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="18" font-weight="700" fill="#0B3C5D" text-anchor="start">バディとは手の届く距離で</text>
+  
+  <rect x="24" y="60" width="286" height="240" rx="12" fill="#E3F4EF"/><text x="167" y="90" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="15" font-weight="700" fill="#1B998B" text-anchor="middle">◎ 手が届く（1〜2m）</text>
+  <g transform="translate(110 190) rotate(0) scale(0.75)">
+  <rect x="-10" y="-17" width="40" height="11" rx="5.5" fill="#D98E04"/>
+  <rect x="-30" y="-8" width="62" height="18" rx="9" fill="#0B3C5D"/>
+  <circle cx="42" cy="-1" r="10" fill="#0B3C5D"/>
+  <rect x="44" y="-6" width="10" height="7" rx="2" fill="#CDEBE5" stroke="#0B3C5D" stroke-width="2"/>
+  <path d="M-30 -2 L-52 -10 L-56 2 L-30 6 Z" fill="#1B998B"/>
+</g><g transform="translate(220 215) rotate(0) scale(0.75)">
+  <rect x="-10" y="-17" width="40" height="11" rx="5.5" fill="#D98E04"/>
+  <rect x="-30" y="-8" width="62" height="18" rx="9" fill="#15717A"/>
+  <circle cx="42" cy="-1" r="10" fill="#15717A"/>
+  <rect x="44" y="-6" width="10" height="7" rx="2" fill="#CDEBE5" stroke="#15717A" stroke-width="2"/>
+  <path d="M-30 -2 L-52 -10 L-56 2 L-30 6 Z" fill="#1B998B"/>
+</g>
+  <line x1="150" y1="200" x2="190" y2="210" stroke="#1B998B" stroke-width="2" stroke-dasharray="4 4"/>
+  <rect x="330" y="60" width="286" height="240" rx="12" fill="#FBE4DE"/><text x="473" y="90" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="15" font-weight="700" fill="#D64527" text-anchor="middle">× 離れすぎ</text>
+  <g transform="translate(380 170) rotate(0) scale(0.6)">
+  <rect x="-10" y="-17" width="40" height="11" rx="5.5" fill="#D98E04"/>
+  <rect x="-30" y="-8" width="62" height="18" rx="9" fill="#0B3C5D"/>
+  <circle cx="42" cy="-1" r="10" fill="#0B3C5D"/>
+  <rect x="44" y="-6" width="10" height="7" rx="2" fill="#CDEBE5" stroke="#0B3C5D" stroke-width="2"/>
+  <path d="M-30 -2 L-52 -10 L-56 2 L-30 6 Z" fill="#1B998B"/>
+</g><g transform="translate(560 260) rotate(0) scale(0.6)">
+  <rect x="-10" y="-17" width="40" height="11" rx="5.5" fill="#D98E04"/>
+  <rect x="-30" y="-8" width="62" height="18" rx="9" fill="#15717A"/>
+  <circle cx="42" cy="-1" r="10" fill="#15717A"/>
+  <rect x="44" y="-6" width="10" height="7" rx="2" fill="#CDEBE5" stroke="#15717A" stroke-width="2"/>
+  <path d="M-30 -2 L-52 -10 L-56 2 L-30 6 Z" fill="#1B998B"/>
+</g>
+  <line x1="410" y1="176" x2="540" y2="252" stroke="#D64527" stroke-width="2" stroke-dasharray="4 4"/>
+  <text x="24" y="335" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="12" font-weight="400" fill="#7A8A92" text-anchor="start">数分おきに振り返って合図し合う。見失ったら「1分探して、見つからなければ浮上」</text>
+</svg>

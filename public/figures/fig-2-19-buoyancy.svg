@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="沈む・中性浮力・浮く">
+  <rect x="1" y="1" width="638" height="358" rx="16" fill="#FFFFFF" stroke="#D5E6EA" stroke-width="2"/>
+  <text x="24" y="38" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="18" font-weight="700" fill="#0B3C5D" text-anchor="start">沈む・中性浮力・浮く</text>
+  
+  <rect x="24" y="60" width="592" height="250" rx="10" fill="#CDEBE5"/>
+  <g transform="translate(120 200) rotate(0) scale(0.8)">
+  <rect x="-10" y="-17" width="40" height="11" rx="5.5" fill="#D98E04"/>
+  <rect x="-30" y="-8" width="62" height="18" rx="9" fill="#0B3C5D"/>
+  <circle cx="42" cy="-1" r="10" fill="#0B3C5D"/>
+  <rect x="44" y="-6" width="10" height="7" rx="2" fill="#CDEBE5" stroke="#0B3C5D" stroke-width="2"/>
+  <path d="M-30 -2 L-52 -10 L-56 2 L-30 6 Z" fill="#1B998B"/>
+</g><line x1="120" y1="218" x2="120" y2="258" stroke="#D64527" stroke-width="3" stroke-linecap="round"/><polygon points="120,258 115.6503446588877,248.99552897647322 124.34965534111231,248.99552897647322" fill="#D64527"/><text x="120" y="280" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="16" font-weight="700" fill="#D64527" text-anchor="middle">沈む</text><text x="120" y="300" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="12" font-weight="400" fill="#4F5B62" text-anchor="middle">重さ ＞ 浮力</text>
+  <g transform="translate(320 190) rotate(0) scale(0.8)">
+  <rect x="-10" y="-17" width="40" height="11" rx="5.5" fill="#D98E04"/>
+  <rect x="-30" y="-8" width="62" height="18" rx="9" fill="#0B3C5D"/>
+  <circle cx="42" cy="-1" r="10" fill="#0B3C5D"/>
+  <rect x="44" y="-6" width="10" height="7" rx="2" fill="#CDEBE5" stroke="#0B3C5D" stroke-width="2"/>
+  <path d="M-30 -2 L-52 -10 L-56 2 L-30 6 Z" fill="#1B998B"/>
+</g><text x="320" y="280" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="16" font-weight="700" fill="#1B998B" text-anchor="middle">中性浮力</text><text x="320" y="300" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="12" font-weight="400" fill="#4F5B62" text-anchor="middle">重さ ＝ 浮力（止まっていられる）</text>
+  <g transform="translate(520 130) rotate(0) scale(0.8)">
+  <rect x="-10" y="-17" width="40" height="11" rx="5.5" fill="#D98E04"/>
+  <rect x="-30" y="-8" width="62" height="18" rx="9" fill="#0B3C5D"/>
+  <circle cx="42" cy="-1" r="10" fill="#0B3C5D"/>
+  <rect x="44" y="-6" width="10" height="7" rx="2" fill="#CDEBE5" stroke="#0B3C5D" stroke-width="2"/>
+  <path d="M-30 -2 L-52 -10 L-56 2 L-30 6 Z" fill="#1B998B"/>
+</g><line x1="520" y1="110" x2="520" y2="72" stroke="#D98E04" stroke-width="3" stroke-linecap="round"/><polygon points="520,72 524.3496553411123,81.00447102352678 515.6503446588877,81.00447102352678" fill="#D98E04"/><text x="520" y="280" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="16" font-weight="700" fill="#D98E04" text-anchor="middle">浮く</text><text x="520" y="300" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="12" font-weight="400" fill="#4F5B62" text-anchor="middle">重さ ＜ 浮力</text>
+  <text x="24" y="340" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="12" font-weight="400" fill="#7A8A92" text-anchor="start">調整はBCDに少しずつ空気を入れて。呼吸でも浮き沈みする（吸うと浮く・吐くと沈む）</text>
+</svg>

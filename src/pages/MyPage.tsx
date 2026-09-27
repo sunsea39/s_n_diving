@@ -12,19 +12,27 @@ import {
   type AvatarStyle
 } from '../components/DiverAvatar';
 import { cropAvatar } from '../lib/accounts';
+import {
+  disablePush,
+  enablePush,
+  isIosHomeScreenRequired,
+  sendPushTest,
+  supportsPush
+} from '../lib/push';
 import { serviceBadge, serviceBadgeLabel, totalDiveCount, validateDisplayName } from '../lib/logic';
 import { usePageTitle } from '../lib/pageTitle';
 import { requireSupabase, supabase } from '../lib/supabase';
 import type { Bookmark, DiveLog, GearNote, Post, Profile, Thread } from '../types';
 import { useAppData } from '../context/AppDataContext';
 
-type Tab = 'profile' | 'experience' | 'bookmarks' | 'posts' | 'gear' | 'account';
+type Tab = 'profile' | 'experience' | 'bookmarks' | 'posts' | 'gear' | 'notifications' | 'account';
 const tabs: [Tab, string][] = [
   ['profile', 'プロフィール'],
   ['experience', 'ダイビング経験'],
   ['bookmarks', 'ブックマーク'],
   ['posts', '自分の投稿'],
   ['gear', '機材メモ'],
+  ['notifications', '通知'],
   ['account', 'アカウント']
 ];
 const emptyGear = {
@@ -63,6 +71,7 @@ export function MyPage() {
   const [confirmation, setConfirmation] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [pushStatus, setPushStatus] = useState('');
   useEffect(() => {
     setDraft(profile);
     const savedStyle = normalizeAvatarStyle(profile?.avatar_style);
@@ -272,8 +281,8 @@ export function MyPage() {
                           face: preset.face,
                           suit: preset.suit,
                           bg: preset.bg,
-                          accessory: preset.accessory,
-                          bandanaColor: preset.bandanaColor
+                          accessory: preset.accessory === 'bandana' ? 'headband' : preset.accessory,
+                          headbandColor: preset.headbandColor ?? preset.bandanaColor ?? 'red'
                         })
                       }
                     >
@@ -363,32 +372,33 @@ export function MyPage() {
                 </div>
                 <div>
                   <small>小物</small>
-                  {(['none', 'mask', 'bandana'] as const).map((accessory) => (
+                  {(['none', 'mask', 'headband'] as const).map((accessory) => (
                     <button
                       key={accessory}
                       aria-pressed={style.accessory === accessory}
                       onClick={() => setStyle({ ...style, accessory })}
                     >
-                      {{ none: 'なし', mask: 'マスク', bandana: 'バンダナ' }[accessory]}
+                      {{ none: 'なし', mask: 'マスク', headband: 'ヘアバンド' }[accessory]}
                     </button>
                   ))}
                 </div>
-                {style.accessory === 'bandana' && (
-                  <div>
-                    <small>バンダナの色</small>
-                    {Object.keys(PALETTE.bandana).map((key) => (
+                {style.accessory === 'headband' && (
+                  <div className="headband-colors">
+                    <small>ヘアバンドの色</small>
+                    {Object.keys(PALETTE.headband).map((key) => (
                       <button
                         key={key}
-                        aria-label={`バンダナ：${key}`}
-                        aria-pressed={style.bandanaColor === key}
+                        aria-label={`ヘアバンド：${key}`}
+                        aria-pressed={style.headbandColor === key}
                         onClick={() =>
                           setStyle({
                             ...style,
-                            bandanaColor: key as AvatarStyle['bandanaColor']
+                            headbandColor: key as NonNullable<AvatarStyle['headbandColor']>
                           })
                         }
                         style={{
-                          backgroundColor: PALETTE.bandana[key as AvatarStyle['bandanaColor']]
+                          backgroundColor:
+                            PALETTE.headband[key as NonNullable<AvatarStyle['headbandColor']>]
                         }}
                       >
                         {key}
@@ -816,6 +826,70 @@ export function MyPage() {
               </button>
             )}
           </div>
+        </section>
+      )}
+      {tab === 'notifications' && (
+        <section className="panel form-panel notification-settings">
+          <h2>通知</h2>
+          <p>ダイビング予定と新しい事故事例をお知らせします。</p>
+          {isIosHomeScreenRequired() && (
+            <p className="notice">
+              iPhoneではSafariの共有メニューから「ホーム画面に追加」した後、このページを開いて通知を許可してください。
+            </p>
+          )}
+          {!supportsPush() && (
+            <p className="error">このブラウザではプッシュ通知を利用できません。</p>
+          )}
+          <div className="button-row">
+            <button
+              className="button"
+              disabled={!supportsPush()}
+              onClick={() => {
+                void enablePush(user.id)
+                  .then(() => setPushStatus('通知を有効にしました。'))
+                  .catch((cause: unknown) =>
+                    setPushStatus(
+                      cause instanceof Error ? cause.message : '通知を有効にできませんでした。'
+                    )
+                  );
+              }}
+            >
+              通知を有効にする
+            </button>
+            <button
+              className="button-secondary"
+              disabled={!supportsPush()}
+              onClick={() => {
+                void disablePush(user.id)
+                  .then(() => setPushStatus('通知を停止しました。'))
+                  .catch((cause: unknown) =>
+                    setPushStatus(
+                      cause instanceof Error ? cause.message : '通知を停止できませんでした。'
+                    )
+                  );
+              }}
+            >
+              通知を停止する
+            </button>
+            <button
+              className="button-secondary"
+              disabled={!supportsPush()}
+              onClick={() => {
+                void sendPushTest()
+                  .then(() =>
+                    setPushStatus('テスト通知を送信しました。届くまで少しお待ちください。')
+                  )
+                  .catch((cause: unknown) =>
+                    setPushStatus(
+                      cause instanceof Error ? cause.message : 'テスト通知を送信できませんでした。'
+                    )
+                  );
+              }}
+            >
+              テスト通知を送る
+            </button>
+          </div>
+          {pushStatus && <p role="status">{pushStatus}</p>}
         </section>
       )}
       {tab === 'account' && (

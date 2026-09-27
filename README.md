@@ -1,5 +1,13 @@
 # N×S_Diving
 
+## v2.4 migration and push delivery
+
+Apply `supabase/migrations/20260930000000_v2_4.sql` after v2.3. It is additive and re-runnable. It adds headband avatars, in-app notification events, per-user push subscriptions, delivery triggers, and the five-minute notification cron job.
+
+Before publishing notifications, deploy the `send-push` Edge Function with **Verify JWT disabled**, then configure these Edge Function secrets in the Supabase Dashboard: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, and `PUSH_WEBHOOK_SECRET`. Do not commit the private VAPID key or webhook secret. Store the deployed function URL and the same webhook secret in Supabase Vault as `ns_push_function_url` and `ns_push_webhook_secret`; `private/push-setup.sql` is ignored by Git and contains only the local placeholders. Enable `pg_net` and `pg_cron` for the project before applying the migration. The public VAPID key is built into `src/lib/push.ts`.
+
+The service worker is scoped to `/s_n_diving/`. On iPhone, users must open the installed Home Screen web app before enabling notifications. The My Page notification tab includes registration, cancellation, and a per-user test notification.
+
 ## v2.3 migration
 
 Apply `supabase/migrations/20260929000000_v2_3.sql` after the existing migrations (including v2.2), using the Supabase SQL Editor or the project migration workflow. It is additive and re-runnable. It adds the v2.3 avatar accessory validation and limits dive-schedule news to approved members; public “other” news remains public after publication. Refresh browser sessions after applying it.

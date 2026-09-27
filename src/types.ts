@@ -14,6 +14,7 @@ export interface Profile {
   dive_count: number | null;
   logged_dives: number;
   last_dived_on: string | null;
+  notifications_seen_at: string;
   favorite_areas: string;
   created_at: string;
   approved_at: string | null;
@@ -133,6 +134,17 @@ export interface NewsItem {
   place?: string;
   pinned: boolean;
   published_at: string | null;
+}
+
+export interface NotificationEvent {
+  id: number;
+  kind: 'news' | 'accident';
+  ref_id: string;
+  audience: 'members';
+  title: string;
+  body: string;
+  url: string;
+  created_at: string;
 }
 
 export interface HiyariFields {

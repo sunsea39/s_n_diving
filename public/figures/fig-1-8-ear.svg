@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="耳抜き：鼓膜の内と外の圧力をそろえる">
+  <rect x="1" y="1" width="638" height="358" rx="16" fill="#FFFFFF" stroke="#D5E6EA" stroke-width="2"/>
+  <text x="24" y="38" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="18" font-weight="700" fill="#0B3C5D" text-anchor="start">耳抜き：鼓膜の内と外の圧力をそろえる</text>
+  
+    <rect x="24" y="60" width="280" height="250" rx="12" fill="#EEF5F6"/>
+    <text x="164" y="88" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="15" font-weight="700" fill="#D64527" text-anchor="middle">耳抜き前：鼓膜が内側へ押される</text>
+    <rect x="44" y="160" width="100" height="40" fill="#CDEBE5"/><text x="94" y="230" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="12" font-weight="400" fill="#4F5B62" text-anchor="middle">外耳（水圧）</text>
+    <path d="M156 140 Q174 180 156 220" fill="none" stroke="#D64527" stroke-width="5"/>
+    <text x="156" y="128" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="12" font-weight="700" fill="#D64527" text-anchor="middle">鼓膜</text>
+    <ellipse cx="214" cy="180" rx="44" ry="36" fill="#FFFFFF" stroke="#D5E6EA" stroke-width="2"/><text x="214" y="185" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="13" font-weight="700" fill="#0B3C5D" text-anchor="middle">中耳</text>
+    <path d="M229 214 Q249 260 274 290" fill="none" stroke="#7FC9BF" stroke-width="10" stroke-linecap="round"/>
+    <text x="224" y="300" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="12" font-weight="400" fill="#4F5B62" text-anchor="middle">耳管（のどへ）</text>
+    <line x1="84" y1="180" x2="146" y2="180" stroke="#D64527" stroke-width="3" stroke-linecap="round"/><polygon points="146,180 136.99552897647322,184.3496553411123 136.99552897647322,175.6503446588877" fill="#D64527"/>
+    <rect x="336" y="60" width="280" height="250" rx="12" fill="#EEF5F6"/>
+    <text x="476" y="88" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="15" font-weight="700" fill="#1B998B" text-anchor="middle">耳抜き後：耳管から空気が入り平らに</text>
+    <rect x="356" y="160" width="100" height="40" fill="#CDEBE5"/><text x="406" y="230" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="12" font-weight="400" fill="#4F5B62" text-anchor="middle">外耳（水圧）</text>
+    <line x1="468" y1="140" x2="468" y2="220" stroke="#1B998B" stroke-width="5"/>
+    <text x="468" y="128" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="12" font-weight="700" fill="#1B998B" text-anchor="middle">鼓膜</text>
+    <ellipse cx="526" cy="180" rx="44" ry="36" fill="#FFFFFF" stroke="#D5E6EA" stroke-width="2"/><text x="526" y="185" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="13" font-weight="700" fill="#0B3C5D" text-anchor="middle">中耳</text>
+    <path d="M541 214 Q561 260 586 290" fill="none" stroke="#7FC9BF" stroke-width="10" stroke-linecap="round"/>
+    <text x="536" y="300" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="12" font-weight="400" fill="#4F5B62" text-anchor="middle">耳管（のどへ）</text>
+    <line x1="576" y1="280" x2="550" y2="222" stroke="#1B998B" stroke-width="3" stroke-linecap="round"/><polygon points="550,222 557.6524330925984,228.4374115732416 549.7142309782159,231.9959159693441" fill="#1B998B"/>
+</svg>

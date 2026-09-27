@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="ダイビング後の飛行機は時間をあけて">
+  <rect x="1" y="1" width="638" height="358" rx="16" fill="#FFFFFF" stroke="#D5E6EA" stroke-width="2"/>
+  <text x="24" y="38" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="18" font-weight="700" fill="#0B3C5D" text-anchor="start">ダイビング後の飛行機は時間をあけて</text>
+  
+  <line x1="60" y1="190" x2="580" y2="190" stroke="#D5E6EA" stroke-width="8" stroke-linecap="round"/>
+  <line x1="60" y1="190" x2="480" y2="190" stroke="#D98E04" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="60" cy="190" r="14" fill="#1B998B"/><text x="40" y="160" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="14" font-weight="700" fill="#1B998B" text-anchor="start">最後のダイビング</text>
+  <text x="270" y="230" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="16" font-weight="700" fill="#D98E04" text-anchor="middle">24時間を目安にあける</text>
+  <g transform="translate(540 190)"><path d="M-30 0 L30 -6 L36 0 L30 6 Z" fill="#0B3C5D"/><path d="M-4 -3 L-18 -24 L-8 -24 L12 -3 Z M-4 3 L-18 24 L-8 24 L12 3 Z" fill="#0B3C5D"/></g>
+  <text x="540" y="240" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="13" font-weight="700" fill="#0B3C5D" text-anchor="middle">飛行機・高い山</text>
+  <rect x="60" y="270" width="520" height="54" rx="10" fill="#EEF5F6"/>
+  <text x="76" y="294" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="13" font-weight="400" fill="#4F5B62" text-anchor="start">高い所では気圧が下がり、体の窒素が泡になりやすい</text>
+  <text x="76" y="314" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="13" font-weight="700" fill="#0B3C5D" text-anchor="start">時間はダイブコンピューターの表示に従う</text>
+</svg>

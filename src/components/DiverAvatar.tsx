@@ -12,7 +12,8 @@ export const PALETTE = {
     teal: '#1B998B'
   },
   suit: { navy: '#0B3C5D', black: '#22272B', teal: '#1B998B', coral: '#D64527' },
-  bandana: {
+  headband: {
+    brown: '#7A4E2D',
     red: '#D64527',
     navy: '#0B3C5D',
     teal: '#1B998B',
@@ -76,13 +77,16 @@ export type AvatarStyle = {
   face: keyof typeof FACE;
   suit: keyof typeof PALETTE.suit;
   bg: keyof typeof PALETTE.bg;
-  accessory: 'none' | 'mask' | 'bandana';
-  bandanaColor: keyof typeof PALETTE.bandana;
+  accessory: 'none' | 'mask' | 'headband' | 'bandana';
+  headbandColor?: keyof typeof PALETTE.headband;
+  /** Legacy persisted field; normalized to headbandColor before save. */
+  bandanaColor?: keyof typeof PALETTE.headband;
 };
 type LegacyAvatarStyle = Omit<AvatarStyle, 'accessory' | 'bandanaColor'> & {
   mask: boolean;
-  accessory?: AvatarStyle['accessory'];
-  bandanaColor?: AvatarStyle['bandanaColor'];
+  accessory?: AvatarStyle['accessory'] | 'bandana';
+  bandanaColor?: keyof typeof PALETTE.headband;
+  headbandColor?: keyof typeof PALETTE.headband;
 };
 export const DEFAULT_AVATAR_STYLE: AvatarStyle = {
   skin: 'fair',
@@ -92,7 +96,7 @@ export const DEFAULT_AVATAR_STYLE: AvatarStyle = {
   suit: 'navy',
   bg: 'mist',
   accessory: 'none',
-  bandanaColor: 'red'
+  headbandColor: 'red'
 };
 export const PRESETS: (AvatarStyle & { name: string })[] = [
   { name: 'ショート・紺', ...DEFAULT_AVATAR_STYLE },
@@ -225,19 +229,19 @@ export const PRESETS: (AvatarStyle & { name: string })[] = [
     face: 'smile',
     suit: 'teal',
     bg: 'sand',
-    accessory: 'bandana',
-    bandanaColor: 'red'
+    accessory: 'headband',
+    headbandColor: 'red'
   },
   {
     name: 'バンダナ・紺',
     skin: 'fair',
     hair: 'long',
-    hairColor: 'brown',
+    hairColor: 'black',
     face: 'calm',
     suit: 'coral',
     bg: 'mist',
-    accessory: 'bandana',
-    bandanaColor: 'navy'
+    accessory: 'headband',
+    headbandColor: 'brown'
   },
   {
     name: 'バンダナ・黄',
@@ -247,8 +251,8 @@ export const PRESETS: (AvatarStyle & { name: string })[] = [
     face: 'wink',
     suit: 'navy',
     bg: 'sea',
-    accessory: 'bandana',
-    bandanaColor: 'yellow'
+    accessory: 'headband',
+    headbandColor: 'yellow'
   },
   {
     name: 'バンダナ・ピンク',
@@ -258,8 +262,8 @@ export const PRESETS: (AvatarStyle & { name: string })[] = [
     face: 'smile',
     suit: 'teal',
     bg: 'coral',
-    accessory: 'bandana',
-    bandanaColor: 'pink'
+    accessory: 'headband',
+    headbandColor: 'pink'
   }
 ];
 const shade = (hex: string, f: number) => {
@@ -286,9 +290,10 @@ export function normalizeAvatarStyle(value: unknown): AvatarStyle | null {
     typeof s.bg === 'string' &&
     s.bg in PALETTE.bg;
   if (!baseIsValid) return null;
-  const accessory = s.accessory ?? (s.mask ? 'mask' : 'none');
-  const bandanaColor = s.bandanaColor ?? 'red';
-  if (!['none', 'mask', 'bandana'].includes(accessory) || !(bandanaColor in PALETTE.bandana))
+  const accessory =
+    s.accessory === 'bandana' ? 'headband' : (s.accessory ?? (s.mask ? 'mask' : 'none'));
+  const headbandColor = s.headbandColor ?? s.bandanaColor ?? 'red';
+  if (!['none', 'mask', 'headband'].includes(accessory) || !(headbandColor in PALETTE.headband))
     return null;
   return {
     skin: s.skin as AvatarStyle['skin'],
@@ -297,8 +302,8 @@ export function normalizeAvatarStyle(value: unknown): AvatarStyle | null {
     face: s.face as AvatarStyle['face'],
     suit: s.suit as AvatarStyle['suit'],
     bg: s.bg as AvatarStyle['bg'],
-    accessory,
-    bandanaColor: bandanaColor as AvatarStyle['bandanaColor']
+    accessory: accessory as AvatarStyle['accessory'],
+    headbandColor: headbandColor as AvatarStyle['headbandColor']
   };
 }
 export function isAvatarStyle(value: unknown): value is AvatarStyle {
@@ -412,7 +417,9 @@ export function DiverAvatar({ style, title }: { style: AvatarStyle; title?: stri
           </>
         )}
         <path d={H.front} fill={h} />
-        {style.accessory === 'bandana' && <Bandana color={PALETTE.bandana[style.bandanaColor]} />}
+        {(style.accessory === 'headband' || style.accessory === 'bandana') && (
+          <Headband color={PALETTE.headband[style.headbandColor ?? style.bandanaColor ?? 'red']} />
+        )}
         {style.accessory === 'mask' && (
           <>
             <path
@@ -440,21 +447,21 @@ export function DiverAvatar({ style, title }: { style: AvatarStyle; title?: stri
   );
 }
 
-function Bandana({ color }: { color: string }) {
-  const dot = color === '#F4F4F2' || color === '#F3C969' ? '#0B3C5D' : '#FFFFFF';
+function Headband({ color }: { color: string }) {
   return (
     <>
-      <path d="M35.5 47 C44 39.5 76 39.5 84.5 47 L84 54 C76 46.5 44 46.5 36 54 Z" fill={color} />
-      <g fill={dot} opacity=".85">
-        <circle cx="44" cy="46.2" r="1.3" />
-        <circle cx="52" cy="44.4" r="1.3" />
-        <circle cx="60" cy="43.8" r="1.3" />
-        <circle cx="68" cy="44.4" r="1.3" />
-        <circle cx="76" cy="46.2" r="1.3" />
-      </g>
-      <circle cx="86" cy="50.5" r="3.6" fill={color} />
-      <path d="M88.5 49.5 L98 43.5 L96 52.5 Z" fill={color} />
-      <path d="M88.5 52 L97 59 L91.5 59.5 Z" fill={color} />
+      <path
+        d="M35 46 C43 37.5 77 37.5 85 46 L84.6 52.5 C76.5 44.5 43.5 44.5 35.4 52.5 Z"
+        fill={color}
+      />
+      <path
+        d="M38 45.2 C46 39.2 74 39.2 82 45.2"
+        fill="none"
+        stroke="#FFFFFF"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        opacity=".35"
+      />
     </>
   );
 }

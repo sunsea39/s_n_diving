@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="大潮と小潮：月と太陽の並び方">
+  <rect x="1" y="1" width="638" height="358" rx="16" fill="#FFFFFF" stroke="#D5E6EA" stroke-width="2"/>
+  <text x="24" y="38" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="18" font-weight="700" fill="#0B3C5D" text-anchor="start">大潮と小潮：月と太陽の並び方</text>
+  <rect x="24" y="60" width="286" height="240" rx="12" fill="#EEF5F6"/><text x="167" y="90" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="14" font-weight="700" fill="#0B3C5D" text-anchor="middle">大潮（満月・新月のころ）</text>
+    <circle cx="60" cy="190" r="24" fill="#F3C969"/><circle cx="180" cy="190" r="26" fill="#1B998B"/><ellipse cx="180" cy="190" rx="42" ry="30" fill="none" stroke="#7FC9BF" stroke-width="3" stroke-dasharray="5 4"/><circle cx="270" cy="190" r="12" fill="#7A8A92"/><line x1="84" y1="190" x2="258" y2="190" stroke="#D98E04" stroke-dasharray="4 4"/>
+    <text x="167" y="270" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="12" font-weight="400" fill="#4F5B62" text-anchor="middle">一直線 → 潮の差が大きく、流れも速い</text>
+    <rect x="330" y="60" width="286" height="240" rx="12" fill="#EEF5F6"/><text x="473" y="90" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="14" font-weight="700" fill="#0B3C5D" text-anchor="middle">小潮（半月のころ）</text>
+    <circle cx="366" cy="190" r="24" fill="#F3C969"/><circle cx="480" cy="190" r="26" fill="#1B998B"/><ellipse cx="480" cy="190" rx="42" ry="30" fill="none" stroke="#7FC9BF" stroke-width="3" stroke-dasharray="5 4"/><circle cx="480" cy="120" r="12" fill="#7A8A92"/><line x1="390" y1="190" x2="454" y2="190" stroke="#D98E04" stroke-dasharray="4 4"/><line x1="480" y1="132" x2="480" y2="164" stroke="#D98E04" stroke-dasharray="4 4"/>
+    <text x="473" y="270" font-family="Noto Sans JP, Hiragino Sans, Meiryo, sans-serif" font-size="12" font-weight="400" fill="#4F5B62" text-anchor="middle">直角 → 潮の差が小さく、流れもおだやか</text>
+</svg>

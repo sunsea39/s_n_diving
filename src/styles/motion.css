@@ -50,6 +50,17 @@
   }
 }
 
+@keyframes hero-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+    transform: translateX(-16px);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    transform: translateX(0);
+  }
+}
+
 @keyframes hs-wave-back {
   to {
     transform: translateX(-200px);
@@ -423,12 +434,38 @@
   animation-play-state: paused;
 }
 
-html.theme-ready,
-html.theme-ready *,
-html.theme-ready *::before,
-html.theme-ready *::after {
+html.theme-switching,
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
   transition-duration: var(--motion-theme);
   transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+}
+
+.hero > .kicker,
+.hero > h1,
+.hero > .lead,
+.hero > .button-row {
+  animation: hero-reveal 600ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.hero > h1 {
+  animation-delay: 180ms;
+}
+
+.hero > .lead {
+  animation-delay: 360ms;
+}
+
+.hero > .button-row {
+  animation-delay: 540ms;
+}
+
+html.admin-mode *,
+html.admin-mode *::before,
+html.admin-mode *::after {
+  animation: none !important;
+  transition: none !important;
 }
 
 @media (hover: hover) {
@@ -480,5 +517,12 @@ a.button-danger:active,
   .footer-scene .ft-bubble,
   .footer-scene .ft-rays {
     animation: none !important;
+  }
+
+  .hero > .kicker,
+  .hero > h1,
+  .hero > .lead,
+  .hero > .button-row {
+    animation: none;
   }
 }

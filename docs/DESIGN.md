@@ -1,5 +1,13 @@
 # N×S_Diving 実装仕様 v2.3
 
+## v2.4
+
+- Diver illustrations use the v2.4 headband renderer and eight-color palette, including brown. Legacy `bandana` / `bandanaColor` data is normalized to a headband when read; new edits save `headband` / `headbandColor`. Color swatches are 24px inside 36px keyboard/touch targets.
+- Theme colors transition only while `html.theme-switching` is present, preventing the old broad theme selector from overriding the right-hand drawer transform. The drawer and its contents enter from the right; `html.admin-mode` removes all transitions and animations below `/admin`.
+- Home hero text uses a staggered left-to-right reveal, honoring reduced-motion preferences. Document pages offer a URL- and localStorage-backed “要点のみ” mode that shares the print key-point block filter.
+- Member notifications are persisted as events, with an unread header bell and a My Page push-notification tab. Push secrets are held exclusively in Supabase Vault and Edge Function secrets; the repository contains only the VAPID public key.
+- Apply `20260930000000_v2_4.sql` after v2.3. It is additive and re-runnable; deploy `send-push` with Verify JWT disabled and complete the Vault/secret setup described in the README.
+
 ## v2.3
 
 - Admin grids use `minmax(0, 1fr)` and all admin table wrappers constrain their width and provide their own horizontal scrolling, so a long member email cannot widen the mobile viewport.
