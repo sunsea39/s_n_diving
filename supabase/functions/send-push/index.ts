@@ -18,7 +18,7 @@ function corsHeaders(request: Request) {
   return allowed && origin
     ? {
         'Access-Control-Allow-Origin': origin,
-        'Access-Control-Allow-Headers': 'authorization, content-type, x-push-secret',
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-push-secret',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         Vary: 'Origin'
       }

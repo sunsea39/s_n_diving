@@ -1,4 +1,4 @@
-import { requireSupabase } from './supabase';
+import { requireSupabase, supabaseUrl } from './supabase';
 
 export const VAPID_PUBLIC_KEY =
   'BLLJbbEOqCZ7KMHFDnh9miQw6uVatsh1h_e48vLCMcsafhrIPvbGETDhXQtYRHvyyYBp7N_sg82rtt586sqWnU4';
@@ -64,6 +64,20 @@ export async function disablePush(userId: string) {
 }
 
 export async function sendPushTest() {
-  const { error } = await requireSupabase().functions.invoke('send-push', { body: {} });
-  if (error) throw error;
+  // Call with only Authorization and Content-Type: functions.invoke also sends apikey and
+  // x-client-info headers, and a function that does not allow them fails the browser's CORS preflight.
+  const { data } = await requireSupabase().auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new Error('ログインし直してください。');
+  const response = await fetch(`${supabaseUrl}/functions/v1/send-push`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: '{}'
+  });
+  const result = (await response.json().catch(() => ({}))) as { error?: string; sent?: number };
+  if (!response.ok) throw new Error(result.error ?? `通知を送れませんでした（${response.status}）`);
+  if (!result.sent)
+    throw new Error(
+      'この端末の通知が登録されていません。いったんオフにしてから、もう一度オンにしてください。'
+    );
 }
