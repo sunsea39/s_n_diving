@@ -170,6 +170,34 @@ function PageNotice() {
     <p className="notice">Supabase が未設定です。現在は同梱資料のみ表示しています。</p>
   );
 }
+
+function BackToTop({ hidden, visible }: { hidden: boolean; visible: boolean }) {
+  const isVisible = visible && !hidden;
+  const scrollToTop = () => {
+    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ? 'auto'
+      : 'smooth';
+    window.scrollTo({ top: 0, behavior });
+  };
+
+  return (
+    <button
+      className={`back-to-top ${isVisible ? 'visible' : ''}`}
+      onClick={scrollToTop}
+      tabIndex={isVisible ? 0 : -1}
+      aria-hidden={!isVisible}
+      aria-label="ページの先頭へ"
+    >
+      <span className="back-to-top-icon" aria-hidden="true">
+        ▲
+      </span>
+      <span className="back-to-top-label" aria-hidden="true">
+        上へ
+      </span>
+    </button>
+  );
+}
+
 function Drawer({
   open,
   close,
@@ -288,6 +316,7 @@ export function SiteLayout() {
   const [open, setOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [backToTopVisible, setBackToTopVisible] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setOpen(false), []);
   const setNotificationPanelOpen = useCallback((isOpen: boolean) => {
@@ -301,7 +330,10 @@ export function SiteLayout() {
     return () => document.documentElement.classList.remove('admin-mode');
   }, [location.pathname]);
   useEffect(() => {
-    const update = () => setScrolled(window.scrollY > 0);
+    const update = () => {
+      setScrolled(window.scrollY > 0);
+      setBackToTopVisible(window.scrollY > 8);
+    };
     update();
     window.addEventListener('scroll', update, { passive: true });
     return () => window.removeEventListener('scroll', update);
@@ -363,6 +395,9 @@ export function SiteLayout() {
         </div>
       </header>
       <Drawer open={open} close={close} trigger={trigger} />
+      {!location.pathname.startsWith('/admin') && (
+        <BackToTop hidden={open || notificationOpen} visible={backToTopVisible} />
+      )}
       <main key={location.pathname} className="route-main">
         <PageNotice />
         <Outlet />

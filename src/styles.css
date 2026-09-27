@@ -3,6 +3,7 @@
 :root,
 :root[data-theme='light'] {
   --header-h: calc(64px + env(safe-area-inset-top));
+  --tabbar-h: calc(75px + env(safe-area-inset-bottom, 0px));
   --navy: #0b3c5d;
   --teal: #1b998b;
   --ink: #4f5b62;
@@ -213,6 +214,9 @@ p {
 }
 .app-shell {
   min-height: 100vh;
+}
+.route-main {
+  padding-bottom: var(--tabbar-h);
 }
 .site-header {
   position: sticky;
@@ -904,8 +908,9 @@ main {
   justify-content: space-between;
   gap: 10px;
 }
-.doc-view-toggle {
-  margin: 0 0 16px;
+.doc-view-toggle[aria-pressed='true'] {
+  border-color: var(--teal);
+  color: var(--teal);
 }
 .bookmark-control {
   position: relative;
@@ -1418,7 +1423,7 @@ textarea {
   left: 0;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+  padding: 6px 4px calc(12px + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--line);
   background: var(--ground);
 }
@@ -1454,7 +1459,7 @@ textarea {
   text-align: center;
 }
 .footer-text-band {
-  padding: 14px 16px calc(92px + env(safe-area-inset-bottom));
+  padding: 14px 16px var(--tabbar-h);
   color: var(--ft-text);
   background: var(--ft-sand);
 }
@@ -1976,13 +1981,18 @@ th {
 }
 .back-to-top {
   position: fixed;
-  right: 16px;
-  bottom: calc(90px + env(safe-area-inset-bottom));
+  right: calc(12.5vw - 24px);
+  bottom: calc(var(--tabbar-h) + 10px);
   z-index: 25;
-  min-height: 38px;
-  padding: 5px 12px;
+  display: grid;
+  width: 48px;
+  min-height: 48px;
+  height: 48px;
+  padding: 4px;
+  place-content: center;
+  gap: 0;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: 50%;
   color: var(--navy);
   background: var(--ground);
   box-shadow: 0 3px 10px var(--shadow);
@@ -1993,6 +2003,15 @@ th {
 .back-to-top.visible {
   opacity: 1;
   pointer-events: auto;
+}
+.back-to-top-icon {
+  font-size: 12px;
+  line-height: 1;
+}
+.back-to-top-label {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
 }
 .links-block {
   display: grid;
@@ -2639,7 +2658,13 @@ th {
 }
 
 @media (min-width: 600px) {
+  :root {
+    --tabbar-h: 0px;
+  }
   .app-shell {
+    padding-bottom: 0;
+  }
+  .route-main {
     padding-bottom: 0;
   }
   .bottom-tabs {
@@ -2655,7 +2680,8 @@ th {
     padding-bottom: 14px;
   }
   .back-to-top {
-    bottom: 20px;
+    right: 24px;
+    bottom: 24px;
   }
   .card-grid,
   .habit-grid,

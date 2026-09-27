@@ -1,4 +1,10 @@
-# N×S_Diving 実装仕様 v2.3
+# N×S_Diving 実装仕様 v2.6
+
+## v2.6
+
+- モバイル下部タブは上 6px、下 `calc(12px + env(safe-area-inset-bottom, 0px))` の余白を取り、実高を `--tabbar-h` に集約する。本文とフッターはこの変数で下余白を確保し、固定タブに隠れない。
+- 資料詳細の表示切替は「PDF・印刷」と並ぶ同形のボタンで、要点表示中はティールの枠と文字で示す。ラベルは状態に応じて「要点のみに切り替え」または「全文に切り替え」とする。印刷設定の要点表示は変更しない。
+- 「▲ 上へ」は `SiteLayout` に 1 つだけ置く。スクロール位置が 8px を超えると表示し、モバイルでは掲示板タブの上、600px 以上では右下に配置する。ドロワーまたは通知パネルの表示中、管理画面、印刷ページでは表示しない。reduced motion では即時に先頭へ戻る。
 
 ## v2.5
 
@@ -45,7 +51,7 @@
 - ライトの主要トークンは navy #0B3C5D、teal #1B998B、ink #4F5B62、red #D64527、amber #D98E04、panel #EEF5F6、line #D5E6EA、field-border #A8C4CC、ground #FFFFFF。ダークは ground #0E1A22、panel #16252F、panel-2 #1E313D、line #2A3F4C、field-border #4A6473、navy #E6EEF1、ink #B9C6CC、muted #8697A0、teal #3CC2B2、red #F07A5F、amber #F0B23A を使う。
 - 主ボタンは `--button-bg` / `--button-fg`、NEXT DIVE は `--hero-card-bg`、入力欄は `--field-bg` を使う。すべての面、境界線、バッジ、警告色をトークン化し、ダークテーマでもコントラストを確保する。
 - モバイル優先。600px 未満は下部タブ（ホーム / 資料 / 事故事例 / 掲示板）のアイコン＋ラベル、1024px 未満は右側ハンバーガードロワー、1024px 以上は横並びナビとテーマ切替ボタン。ドロワーと `/more` では 3 種のテーマを選択できる。
-- 下部タブは高さ 56px（safe area を加算）。選択中はティール色の 52×28px 相当のピルをアイコンの背面に表示する。アイコンは `src/components/icons.tsx` のインライン SVG（24px、currentColor）を用いる。
+- 下部タブの各項目は高さ 56px。タブ全体は上 6px、下 `calc(12px + env(safe-area-inset-bottom, 0px))` の余白を持ち、`--tabbar-h` を本文とフッターの固定タブ回避余白にも使う。選択中はティール色の 52×28px 相当のピルをアイコンの背面に表示する。アイコンは `src/components/icons.tsx` のインライン SVG（24px、currentColor）を用いる。
 - トップはコピーの下に CSS 変数で着色する `HeroScene` を全幅・角丸 16px で表示し、NEXT DIVE カードを下端へ 28px 重ねる。高さはモバイル 150px、600px 以上 200px、1024px 以上 240px。
 - ヘッダーは `--header-h`（64px と safe area）を基準に固定する。半透明の `--ground` と blur、スクロール後の薄い影を持ち、ドロワーより低い z-index に保つ。
 
@@ -69,7 +75,7 @@ docs.body は JSONB の intro、blocks、disclaimer。Block は heading / text /
 
 - `text`、`callout`、`steps`、`qa` は `**太字**` だけを React のテキストノードとして解釈する。HTML は挿入せずエスケープする。
 - `/docs` はカテゴリ別に `sort_order` 順でまとめ、カテゴリチップで絞り込む。トップの資料欄はカテゴリ代表ではなく `updated_at` が新しい 4 件を表示する。
-- 資料詳細の heading から目次チップを生成する。目次はヘッダー直下に sticky で保持し、見出しと機材セクションはヘッダーと目次分の scroll margin を持つ。600px を超えてスクロールすると「▲ 上へ」を表示する。
+- 資料詳細の heading から目次チップを生成する。目次はヘッダー直下に sticky で保持し、見出しと機材セクションはヘッダーと目次分の scroll margin を持つ。資料専用の「▲ 上へ」は置かず、全ページ共通のボタンをスクロール位置が 8px を超えたときに表示する。
 - `private/manual/*.json` はダイビング入門の非公開本文で、`scripts/generate-manual-seed.mjs` が docs upsert 用 `private/manual/manual-seed.sql` を生成する。`private/` がない環境では何も書き込まず終了する。
 
 - legacy の sections / habits 本文は normalizeDocBody() で text、signs、習慣見出し、3列 cards に正規化して表示する。

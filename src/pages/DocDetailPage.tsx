@@ -47,14 +47,13 @@ export function DocDetailPage() {
         <Link className="button-secondary" to={`/docs/${displayDoc.slug}/print`}>
           PDF・印刷
         </Link>
-      </div>
-      <div className="doc-view-toggle">
         <button
-          className="chip"
+          className="button-secondary doc-view-toggle"
           aria-pressed={view === 'summary'}
           onClick={() => setView(view === 'summary' ? 'full' : 'summary')}
+          type="button"
         >
-          要点のみ
+          {view === 'summary' ? '全文に切り替え' : '要点のみに切り替え'}
         </button>
       </div>
       <DocContent doc={renderedDoc ?? displayDoc} />
