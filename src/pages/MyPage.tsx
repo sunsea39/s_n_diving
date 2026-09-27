@@ -41,14 +41,15 @@ import {
 } from '../content/pushGuide';
 import {
   addLicense,
+  fallbackLicenseCatalog,
   hasLicense,
-  initialLicenseOrganization,
+  isLicenseInCatalog,
   LICENSE_LIMIT,
-  LICENSE_ORGANIZATIONS,
-  LICENSE_RANKS,
   removeLicense,
+  ranksForOrganization,
+  sortLicenseCatalog,
   toggleLicense,
-  type LicenseOrganization
+  type LicenseCatalog
 } from '../content/licenses';
 
 type Tab = 'profile' | 'experience' | 'bookmarks' | 'posts' | 'gear' | 'notifications' | 'account';
@@ -234,7 +235,8 @@ export function MyPage() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [profileEditing, setProfileEditing] = useState(false);
   const [experienceEditing, setExperienceEditing] = useState(false);
-  const [licenseOrganization, setLicenseOrganization] = useState<LicenseOrganization>('BSAC');
+  const [licenseCatalog, setLicenseCatalog] = useState<LicenseCatalog>(fallbackLicenseCatalog);
+  const [licenseOrganization, setLicenseOrganization] = useState('BSAC');
   const [otherLicenseRank, setOtherLicenseRank] = useState('');
   const [licenseLimitMessage, setLicenseLimitMessage] = useState('');
   const [style, setStyle] = useState<AvatarStyle>(DEFAULT_AVATAR_STYLE);
@@ -275,10 +277,26 @@ export function MyPage() {
     setDraft(profile);
     const savedStyle = normalizeAvatarStyle(profile?.avatar_style);
     if (savedStyle) setStyle(savedStyle);
-    setLicenseOrganization(initialLicenseOrganization(profile?.licenses ?? []));
     setOtherLicenseRank('');
     setLicenseLimitMessage('');
   }, [profile]);
+  useEffect(() => {
+    if (!user) return;
+    const client = requireSupabase();
+    void Promise.all([
+      client.from('license_orgs').select('id, name, sort_order, allow_free_text'),
+      client.from('license_ranks').select('id, org_id, name, sort_order')
+    ]).then(([organizations, ranks]) => {
+      if (organizations.error || ranks.error) return;
+      setLicenseCatalog(sortLicenseCatalog(organizations.data ?? [], ranks.data ?? []));
+    });
+  }, [user]);
+  useEffect(() => {
+    const preferred = profile?.licenses.find((license) =>
+      licenseCatalog.organizations.some((organization) => organization.name === license.org)
+    )?.org;
+    setLicenseOrganization(preferred ?? licenseCatalog.organizations[0]?.name ?? '');
+  }, [licenseCatalog, profile]);
   const load = async () => {
     if (!user) return;
     const client = requireSupabase();
@@ -323,8 +341,17 @@ export function MyPage() {
   const availableDocSlugs = new Set(docs.map((doc) => doc.slug));
   const licenses = draft.licenses ?? [];
   const licenseLimitReached = licenses.length >= LICENSE_LIMIT;
+  const selectedOrganization = licenseCatalog.organizations.find(
+    (organization) => organization.name === licenseOrganization
+  );
+  const selectedRanks = selectedOrganization
+    ? ranksForOrganization(licenseCatalog, selectedOrganization.id)
+    : [];
   const resetLicenseEditor = (source: Profile) => {
-    setLicenseOrganization(initialLicenseOrganization(source.licenses ?? []));
+    const preferred = source.licenses.find((license) =>
+      licenseCatalog.organizations.some((organization) => organization.name === license.org)
+    )?.org;
+    setLicenseOrganization(preferred ?? licenseCatalog.organizations[0]?.name ?? '');
     setOtherLicenseRank('');
     setLicenseLimitMessage('');
   };
@@ -356,14 +383,17 @@ export function MyPage() {
     setDraft({ ...draft, licenses: addLicense(licenses, license) });
     setLicenseLimitMessage('');
   };
-  const addOtherLicense = () => {
+  const addFreeTextLicense = () => {
     const rank = otherLicenseRank.trim();
-    if (!rank) return;
+    if (!rank || !selectedOrganization) return;
     if (licenseLimitReached) {
       setLicenseLimitMessage('ライセンスは5件まで登録できます');
       return;
     }
-    setDraft({ ...draft, licenses: addLicense(licenses, { org: 'その他', rank }) });
+    setDraft({
+      ...draft,
+      licenses: addLicense(licenses, { org: selectedOrganization.name, rank })
+    });
     setOtherLicenseRank('');
     setLicenseLimitMessage('');
   };
@@ -752,7 +782,12 @@ export function MyPage() {
                     <ul className="license-selection" aria-label="選択したライセンス">
                       {licenses.map((license) => (
                         <li key={`${license.org}-${license.rank}`}>
-                          <span>{`${license.org} ${license.rank}`}</span>
+                          <span>
+                            {`${license.org} ${license.rank}`}
+                            {!isLicenseInCatalog(licenseCatalog, license) && (
+                              <small>（現在の一覧にありません）</small>
+                            )}
+                          </span>
                           <button
                             type="button"
                             aria-label={`${license.org} ${license.rank}を削除`}
@@ -778,20 +813,20 @@ export function MyPage() {
                     role="tablist"
                     aria-label="ライセンス団体を選ぶ"
                   >
-                    {LICENSE_ORGANIZATIONS.map((organization) => (
+                    {licenseCatalog.organizations.map((organization) => (
                       <button
-                        key={organization}
+                        key={organization.id}
                         type="button"
                         role="tab"
-                        aria-selected={licenseOrganization === organization}
+                        aria-selected={licenseOrganization === organization.name}
                         aria-controls="license-ranks"
-                        id={`license-organization-${organization}`}
+                        id={`license-organization-${organization.id}`}
                         onClick={() => {
-                          setLicenseOrganization(organization);
+                          setLicenseOrganization(organization.name);
                           setLicenseLimitMessage('');
                         }}
                       >
-                        {organization}
+                        {organization.name}
                       </button>
                     ))}
                   </div>
@@ -800,18 +835,18 @@ export function MyPage() {
                     className="license-ranks"
                     id="license-ranks"
                     role="tabpanel"
-                    aria-labelledby={`license-organization-${licenseOrganization}`}
+                    aria-labelledby={`license-organization-${selectedOrganization?.id ?? ''}`}
                   >
-                    {licenseOrganization === 'その他' ? (
+                    {selectedOrganization?.allow_free_text ? (
                       <form
                         className="license-other-form"
                         onSubmit={(event) => {
                           event.preventDefault();
-                          addOtherLicense();
+                          addFreeTextLicense();
                         }}
                       >
                         <label>
-                          その他のライセンス
+                          {selectedOrganization.name} のライセンス
                           <input
                             maxLength={60}
                             value={otherLicenseRank}
@@ -827,19 +862,19 @@ export function MyPage() {
                         </button>
                       </form>
                     ) : (
-                      LICENSE_RANKS[licenseOrganization].map((rank) => {
-                        const license = { org: licenseOrganization, rank };
+                      selectedRanks.map((rank) => {
+                        const license = { org: selectedOrganization?.name ?? '', rank: rank.name };
                         const selected = hasLicense(licenses, license);
                         return (
                           <button
                             className="chip"
-                            key={rank}
+                            key={rank.id}
                             type="button"
                             aria-pressed={selected}
                             disabled={licenseLimitReached && !selected}
                             onClick={() => selectLicense(license)}
                           >
-                            {rank}
+                            {rank.name}
                           </button>
                         );
                       })
@@ -867,8 +902,19 @@ export function MyPage() {
             ) : (
               <dl className="profile-stats">
                 <dt>ライセンス</dt>
-                <dd>
-                  {(draft.licenses ?? []).map((x) => `${x.org} ${x.rank}`).join('、') || '未登録'}
+                <dd className="license-display">
+                  {(draft.licenses ?? []).length ? (
+                    (draft.licenses ?? []).map((license) => (
+                      <span className="tag" key={`${license.org}-${license.rank}`}>
+                        {license.org} {license.rank}
+                        {!isLicenseInCatalog(licenseCatalog, license) && (
+                          <small>（現在の一覧にありません）</small>
+                        )}
+                      </span>
+                    ))
+                  ) : (
+                    <>未登録</>
+                  )}
                 </dd>
                 <dt>経験本数</dt>
                 <dd>

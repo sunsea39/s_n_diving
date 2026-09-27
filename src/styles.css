@@ -1167,6 +1167,20 @@ main {
 .license-selection button:hover {
   background: var(--ground);
 }
+.license-selection small {
+  margin-left: 4px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.license-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.license-display .tag small {
+  margin-left: 4px;
+  font-size: 11px;
+}
 .license-empty,
 .license-limit-message {
   margin: 0;
@@ -1221,6 +1235,63 @@ main {
 }
 .license-other-form .button-secondary {
   flex: 0 0 auto;
+}
+.license-admin-list {
+  margin-top: 20px;
+}
+.license-admin-card {
+  display: grid;
+  gap: 12px;
+}
+.license-admin-heading,
+.license-admin-ranks li,
+.license-admin-inline-form,
+.license-admin-add,
+.license-admin-move {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.license-admin-heading h2 {
+  margin: 0;
+}
+.license-admin-heading small,
+.license-admin-ranks small {
+  color: var(--muted);
+}
+.license-admin-move {
+  margin-left: auto;
+}
+.license-admin-ranks {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.license-admin-ranks li {
+  min-height: 38px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.license-admin-ranks li > span {
+  font-weight: 700;
+}
+.license-admin-ranks li > small {
+  margin-right: auto;
+}
+.license-admin-add {
+  margin-top: 4px;
+}
+.license-admin-add input,
+.license-admin-inline-form input {
+  min-width: min(100%, 220px);
+  flex: 1 1 180px;
+}
+.license-admin-add-org {
+  margin-top: 20px;
 }
 .avatar-editor > svg {
   width: 96px;

@@ -41,7 +41,90 @@ export const LICENSE_RANKS = {
 
 export type SelectedLicense = { org: string; rank: string };
 
+export type LicenseOrganizationRecord = {
+  id: string;
+  name: string;
+  sort_order: number;
+  allow_free_text: boolean;
+};
+
+export type LicenseRankRecord = {
+  id: string;
+  org_id: string;
+  name: string;
+  sort_order: number;
+};
+
+export type LicenseCatalog = {
+  organizations: LicenseOrganizationRecord[];
+  ranks: LicenseRankRecord[];
+};
+
 export const LICENSE_LIMIT = 5;
+
+export function fallbackLicenseCatalog(): LicenseCatalog {
+  return {
+    organizations: LICENSE_ORGANIZATIONS.map((name, index) => ({
+      id: `fallback-org-${name}`,
+      name,
+      sort_order: (index + 1) * 10,
+      allow_free_text: name === 'その他'
+    })),
+    ranks: Object.entries(LICENSE_RANKS).flatMap(([orgName, names]) =>
+      names.map((name, index) => ({
+        id: `fallback-rank-${orgName}-${name}`,
+        org_id: `fallback-org-${orgName}`,
+        name,
+        sort_order: (index + 1) * 10
+      }))
+    )
+  };
+}
+
+export function sortLicenseCatalog(
+  organizations: LicenseOrganizationRecord[],
+  ranks: LicenseRankRecord[]
+): LicenseCatalog {
+  return {
+    organizations: [...organizations].sort(
+      (a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name, 'ja')
+    ),
+    ranks: [...ranks].sort(
+      (a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name, 'ja')
+    )
+  };
+}
+
+export function ranksForOrganization(catalog: LicenseCatalog, organizationId: string) {
+  return catalog.ranks.filter((rank) => rank.org_id === organizationId);
+}
+
+export function isLicenseInCatalog(catalog: LicenseCatalog, license: SelectedLicense): boolean {
+  const organization = catalog.organizations.find((item) => item.name === license.org);
+  if (!organization) return false;
+  return organization.allow_free_text
+    ? license.rank.length > 0
+    : catalog.ranks.some((rank) => rank.org_id === organization.id && rank.name === license.rank);
+}
+
+export function replaceLicenseOrganization(
+  licenses: readonly SelectedLicense[],
+  from: string,
+  to: string
+): SelectedLicense[] {
+  return licenses.map((license) => (license.org === from ? { ...license, org: to } : license));
+}
+
+export function replaceLicenseRank(
+  licenses: readonly SelectedLicense[],
+  organization: string,
+  from: string,
+  to: string
+): SelectedLicense[] {
+  return licenses.map((license) =>
+    license.org === organization && license.rank === from ? { ...license, rank: to } : license
+  );
+}
 
 export function isLicenseOrganization(value: string): value is LicenseOrganization {
   return LICENSE_ORGANIZATIONS.some((organization) => organization === value);

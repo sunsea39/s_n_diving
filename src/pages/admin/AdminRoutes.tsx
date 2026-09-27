@@ -9,6 +9,7 @@ import { AdminSettingsPage } from './AdminSettingsPage';
 import { AdminAccidentEditorPage, AdminAccidentsListPage } from './AdminAccidentsPage';
 import { AdminMembersPage } from './AdminMembersPage';
 import { AdminPageTextsPage } from './AdminPageTextsPage';
+import { AdminLicensesPage } from './AdminLicensesPage';
 import { useAppData } from '../../context/AppDataContext';
 
 function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -23,6 +24,7 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
           ['/admin/docs', '資料'],
           ['/admin/accidents', '事故事例'],
           ['/admin/members', 'メンバー'],
+          ['/admin/licenses', 'ライセンス'],
           ['/admin/page-texts', 'ページの文言'],
           ['/admin/settings', '設定']
         ]
@@ -62,6 +64,7 @@ export function AdminRoutes() {
         <Route path="news/:id" element={<AdminNewsEditorPage />} />
         <Route path="board" element={<AdminBoardPage />} />
         <Route path="members" element={ownerOnly(<AdminMembersPage />)} />
+        <Route path="licenses" element={ownerOnly(<AdminLicensesPage />)} />
         <Route path="page-texts" element={ownerOnly(<AdminPageTextsPage />)} />
         <Route path="settings" element={ownerOnly(<AdminSettingsPage />)} />
         <Route path="*" element={<NotFoundPage />} />

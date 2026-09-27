@@ -1,5 +1,11 @@
 # N×S_Diving
 
+## v2.11 migration
+
+Apply `supabase/migrations/20261003000000_v2_11.sql` after v2.9. It is additive and re-runnable. It adds the public-readable `license_orgs` / `license_ranks` catalog, owner-only catalog writes, owner-only rename and aggregate-usage RPCs, and a profile trigger that validates newly added licenses against the catalog. It intentionally preserves licenses already registered on profiles even if their catalog entry is later deleted.
+
+After applying it, owners can maintain the catalog at `/admin/licenses`; My Page uses the database catalog and falls back to the bundled list only if loading fails. Refresh browser sessions after applying the migration so the new tables and RPC grants are available.
+
 ## v2.9 migration
 
 Apply `supabase/migrations/20261002000000_v2_9.sql` after v2.8. It is additive and re-runnable. It adds per-user `content_reads`, batch accident-publication notifications, the owner-only `set_accidents_status` RPC, and the five additional document icons.
@@ -37,7 +43,7 @@ Owners can import accident examples at `/admin/accidents` with **CSV で取り�
 ## 初回セットアップ
 
 1. 専用 GitHub アカウントで `s_n_diving` リポジトリを作成して push し、Pages の Source を「GitHub Actions」に設定します。
-2. Supabase プロジェクトを作成します。SQL Editor で migration をファイル名順に実行します（v2.4、v2.8、v2.9 を含む `supabase/migrations/` の全ファイル）。最後に `supabase/seed.sql` を実行します。migration は既存 DB への追加・再実行に対応しています。`node scripts/generate-seed.mjs` で JSON から seed SQL を再生成できます。
+2. Supabase プロジェクトを作成します。SQL Editor で migration をファイル名順に実行します（v2.4、v2.8、v2.9、v2.11 を含む `supabase/migrations/` の全ファイル）。最後に `supabase/seed.sql` を実行します。migration は既存 DB への追加・再実行に対応しています。`node scripts/generate-seed.mjs` で JSON から seed SQL を再生成できます。
 3. Authentication → Providers → Email で **Confirm email を OFF** にし、Authentication → Providers で **Anonymous sign-ins を OFF** にします。
 4. ダイビング入門の資料を登録する場合は、ローカルの `private/manual/manual-seed.sql` を SQL Editor で実行します。この資料本文は公開リポジトリには含めません。
 5. 最初の管理者は既存の `admins` 行から migration が owner に移行します。新規サイトでは最初の登録後、SQL Editor で対象の `profiles.role` を `owner` に設定してください。以後の承認・権限変更は `/admin/members` で行います。権限の正本は `profiles.role` です。
