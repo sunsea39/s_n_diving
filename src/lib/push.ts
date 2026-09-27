@@ -1,5 +1,7 @@
 import { requireSupabase, supabaseUrl } from './supabase';
 
+export type PushState = 'on' | 'off' | 'blocked' | 'unsupported';
+
 export const VAPID_PUBLIC_KEY =
   'BLLJbbEOqCZ7KMHFDnh9miQw6uVatsh1h_e48vLCMcsafhrIPvbGETDhXQtYRHvyyYBp7N_sg82rtt586sqWnU4';
 
@@ -11,7 +13,28 @@ export function base64UrlToUint8Array(value: string): Uint8Array {
 }
 
 export function supportsPush() {
-  return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  return (
+    typeof navigator !== 'undefined' &&
+    typeof window !== 'undefined' &&
+    'serviceWorker' in navigator &&
+    'PushManager' in window &&
+    'Notification' in window
+  );
+}
+
+/** Returns the browser's actual local push-subscription state for this device. */
+export async function getPushState(): Promise<PushState> {
+  if (!supportsPush()) return 'unsupported';
+  if (Notification.permission === 'denied') return 'blocked';
+
+  try {
+    const registration = await navigator.serviceWorker.getRegistration(import.meta.env.BASE_URL);
+    return (await registration?.pushManager.getSubscription()) ? 'on' : 'off';
+  } catch {
+    // A registration lookup can fail while the browser is restoring its service worker.
+    // Treat it as not subscribed and let the next refresh correct the display.
+    return 'off';
+  }
 }
 
 export function isIosHomeScreenRequired() {

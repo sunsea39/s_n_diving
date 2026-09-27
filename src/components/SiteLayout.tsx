@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAppData } from '../context/AppDataContext';
+import { clampNotificationPanelRight } from '../lib/notificationPanel';
 import { requireSupabase, supabase } from '../lib/supabase';
 import type { NotificationEvent } from '../types';
 import { ThemePicker, ThemeToggleButton } from './ThemeControls';
@@ -19,10 +20,19 @@ import {
   MenuIcon
 } from './icons';
 
-function NotificationBell() {
+function NotificationBell({
+  open,
+  onOpenChange
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const { user, profile, refreshSession } = useAppData();
+  const location = useLocation();
   const [events, setEvents] = useState<NotificationEvent[]>([]);
-  const [open, setOpen] = useState(false);
+  const bell = useRef<HTMLButtonElement>(null);
+  const panel = useRef<HTMLElement>(null);
+  const [panelRight, setPanelRight] = useState<number | null>(null);
   useEffect(() => {
     if (!user || !profile) {
       setEvents([]);
@@ -35,10 +45,63 @@ function NotificationBell() {
       .limit(20)
       .then(({ data }) => setEvents((data as NotificationEvent[] | null) ?? []));
   }, [profile, user]);
+  const closePanel = useCallback(
+    (returnFocus = false) => {
+      onOpenChange(false);
+      if (returnFocus) requestAnimationFrame(() => bell.current?.focus({ preventScroll: true }));
+    },
+    [onOpenChange]
+  );
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (!panel.current?.contains(target) && !bell.current?.contains(target)) closePanel();
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closePanel(true);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [closePanel, open]);
+  useEffect(() => {
+    closePanel();
+  }, [closePanel, location.pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const updatePanelPosition = () => {
+      const element = panel.current;
+      const trigger = bell.current;
+      const header = trigger?.closest<HTMLElement>('.header-inner');
+      if (!element || !trigger || !header || window.innerWidth < 1024) {
+        setPanelRight(null);
+        return;
+      }
+      setPanelRight(
+        clampNotificationPanelRight({
+          triggerRight: trigger.getBoundingClientRect().right,
+          headerRight: header.getBoundingClientRect().right,
+          panelWidth: element.getBoundingClientRect().width,
+          viewportWidth: window.innerWidth
+        })
+      );
+    };
+    const frame = requestAnimationFrame(updatePanelPosition);
+    window.addEventListener('resize', updatePanelPosition);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('resize', updatePanelPosition);
+    };
+  }, [open]);
   if (!user || !profile) return null;
   const unread = events.filter((event) => event.created_at > profile.notifications_seen_at).length;
   const markSeen = () => {
-    setOpen((wasOpen) => !wasOpen);
+    onOpenChange(!open);
     if (open || unread === 0) return;
     const seenAt = new Date().toISOString();
     void requireSupabase()
@@ -50,22 +113,43 @@ function NotificationBell() {
   return (
     <div className="notification-menu">
       <button
+        ref={bell}
         className="notification-bell"
         onClick={markSeen}
         aria-expanded={open}
         aria-label="お知らせ"
+        aria-controls="notification-panel"
       >
         <BellIcon />
         {unread > 0 && <span className="notification-badge">{unread > 9 ? '9+' : unread}</span>}
       </button>
       {open && (
-        <section className="notification-panel" aria-label="お知らせ一覧">
-          <b>お知らせ</b>
+        <section
+          ref={panel}
+          id="notification-panel"
+          className="notification-panel"
+          aria-label="お知らせ一覧"
+          style={
+            panelRight === null
+              ? undefined
+              : ({ '--notification-panel-right': `${panelRight}px` } as CSSProperties)
+          }
+        >
+          <div className="notification-panel-heading">
+            <b>お知らせ</b>
+            <button
+              className="notification-panel-close"
+              onClick={() => closePanel(true)}
+              aria-label="お知らせを閉じる"
+            >
+              <CloseIcon />
+            </button>
+          </div>
           {events.length === 0 ? (
             <p>新しいお知らせはありません。</p>
           ) : (
             events.map((event) => (
-              <Link key={event.id} to={event.url} onClick={() => setOpen(false)}>
+              <Link key={event.id} to={event.url} onClick={() => onOpenChange(false)}>
                 <strong>{event.title}</strong>
                 {event.body && <span>{event.body}</span>}
                 <time dateTime={event.created_at}>
@@ -202,9 +286,14 @@ function Drawer({
 }
 export function SiteLayout() {
   const [open, setOpen] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => setOpen(false), []);
+  const setNotificationPanelOpen = useCallback((isOpen: boolean) => {
+    setNotificationOpen(isOpen);
+    if (isOpen) setOpen(false);
+  }, []);
   const location = useLocation();
   const { user, profile } = useAppData();
   useEffect(() => {
@@ -247,7 +336,7 @@ export function SiteLayout() {
             <NavLink to="/admin">管理</NavLink>
           </nav>
           <ThemeToggleButton />
-          <NotificationBell />
+          <NotificationBell open={notificationOpen} onOpenChange={setNotificationPanelOpen} />
           {user && profile && (
             <Link className="header-avatar" to="/mypage">
               <Avatar
@@ -261,7 +350,10 @@ export function SiteLayout() {
           <button
             ref={trigger}
             className="menu-button"
-            onClick={() => setOpen((current) => !current)}
+            onClick={() => {
+              setNotificationOpen(false);
+              setOpen((current) => !current);
+            }}
             aria-label={open ? 'メニューを閉じる' : 'メニューを開く'}
             aria-expanded={open}
             aria-controls="site-drawer"

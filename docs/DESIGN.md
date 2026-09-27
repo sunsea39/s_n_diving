@@ -1,5 +1,11 @@
 # N×S_Diving 実装仕様 v2.3
 
+## v2.5
+
+- My Page notification settings read the actual browser subscription state (`on` / `off` / `blocked` / `unsupported`) whenever the tab is opened, a setting changes, or the page becomes visible. The only selected segment is the current setting; test delivery is available only while this device is subscribed. The existing count continues to show subscriptions on other devices.
+- The notification guide is data-driven from `src/content/pushGuide.ts`. Its same-screen native dialog defaults to the detected iPhone/Android guide, locks background scrolling, traps focus, returns focus to its trigger, and supports close button, backdrop, and Escape dismissal.
+- Header notification panels use full-width fixed placement with 12px phone gutters below 1024px. On desktop their calculated right offset aligns to the header and clamps both edges to the viewport. They close on their close control, outside pointerdown, Escape, route changes, and whenever the drawer opens; opening either surface closes the other.
+
 ## v2.4
 
 - Diver illustrations use the v2.4 headband renderer and eight-color palette, including brown. Legacy `bandana` / `bandanaColor` data is normalized to a headband when read; new edits save `headband` / `headbandColor`. Color swatches are 24px inside 36px keyboard/touch targets.

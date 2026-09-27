@@ -1,4 +1,11 @@
-import { useEffect, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type RefObject
+} from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { Avatar } from '../components/Avatar';
 import {
@@ -15,15 +22,23 @@ import { cropAvatar } from '../lib/accounts';
 import {
   disablePush,
   enablePush,
+  getPushState,
   isIosHomeScreenRequired,
   sendPushTest,
-  supportsPush
+  type PushState
 } from '../lib/push';
 import { serviceBadge, serviceBadgeLabel, totalDiveCount, validateDisplayName } from '../lib/logic';
 import { usePageTitle } from '../lib/pageTitle';
 import { requireSupabase, supabase } from '../lib/supabase';
 import type { Bookmark, DiveLog, GearNote, Post, Profile, Thread } from '../types';
 import { useAppData } from '../context/AppDataContext';
+import {
+  detectPushGuideDevice,
+  pushGuide,
+  pushGuideClosingNote,
+  type PushGuideItem,
+  type PushGuideDevice
+} from '../content/pushGuide';
 
 type Tab = 'profile' | 'experience' | 'bookmarks' | 'posts' | 'gear' | 'notifications' | 'account';
 const tabs: [Tab, string][] = [
@@ -42,6 +57,161 @@ const emptyGear = {
   last_service_on: '',
   memo: ''
 };
+
+function PushGuideText({ item }: { item: PushGuideItem }) {
+  if (!item.bold?.length) return item.text;
+  const segments = item.text.split(
+    new RegExp(
+      `(${item.bold.map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`
+    )
+  );
+  return (
+    <>
+      {segments.map((segment, index) =>
+        item.bold?.includes(segment) ? (
+          <strong key={`${segment}-${index}`}>{segment}</strong>
+        ) : (
+          segment
+        )
+      )}
+    </>
+  );
+}
+
+function PushGuideDialog({
+  open,
+  onClose,
+  trigger
+}: {
+  open: boolean;
+  onClose: () => void;
+  trigger: RefObject<HTMLButtonElement | null>;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const wasOpen = useRef(false);
+  const [device, setDevice] = useState<PushGuideDevice>(() =>
+    detectPushGuideDevice(
+      typeof navigator === 'undefined' ? '' : navigator.userAgent,
+      typeof navigator === 'undefined' ? 0 : navigator.maxTouchPoints
+    )
+  );
+
+  useEffect(() => {
+    const element = dialog.current;
+    if (!element) return;
+    if (!open) {
+      if (element.open) element.close();
+      document.body.classList.remove('push-guide-open');
+      if (wasOpen.current) {
+        wasOpen.current = false;
+        trigger.current?.focus({ preventScroll: true });
+      }
+      return;
+    }
+    if (!element.open) element.showModal();
+    wasOpen.current = true;
+    document.body.classList.add('push-guide-open');
+    return () => document.body.classList.remove('push-guide-open');
+  }, [open, trigger]);
+
+  const trapFocus = (event: ReactKeyboardEvent<HTMLDialogElement>) => {
+    if (event.key !== 'Tab') return;
+    const focusable = dialog.current?.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    if (!focusable?.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (
+      event.shiftKey &&
+      (document.activeElement === first || document.activeElement === dialog.current)
+    ) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
+  return (
+    <dialog
+      ref={dialog}
+      className="push-guide-dialog"
+      aria-labelledby="push-guide-title"
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
+      onClose={() => {
+        if (open) onClose();
+      }}
+      onClick={(event) => {
+        if (event.target === dialog.current) onClose();
+      }}
+      onKeyDown={trapFocus}
+    >
+      <div className="push-guide-dialog-content">
+        <div className="push-guide-dialog-heading">
+          <h2 id="push-guide-title">設定の方法</h2>
+          <button
+            className="push-guide-close"
+            onClick={onClose}
+            aria-label="設定の方法を閉じる"
+            autoFocus
+          >
+            ×
+          </button>
+        </div>
+        <div className="push-guide-tabs" role="tablist" aria-label="端末を選ぶ">
+          {(['iphone', 'android'] as const).map((name) => (
+            <button
+              key={name}
+              role="tab"
+              id={`push-guide-tab-${name}`}
+              aria-selected={device === name}
+              aria-controls={`push-guide-panel-${name}`}
+              onClick={() => setDevice(name)}
+            >
+              {name === 'iphone' ? 'iPhone' : 'Android'}
+            </button>
+          ))}
+        </div>
+        <div
+          id={`push-guide-panel-${device}`}
+          role="tabpanel"
+          aria-labelledby={`push-guide-tab-${device}`}
+          className="push-guide-panel"
+        >
+          {pushGuide[device].sections.map((section) => (
+            <section key={section.title}>
+              <h3>{section.title}</h3>
+              {section.steps && (
+                <ol>
+                  {section.steps.map((step) => (
+                    <li key={step.text}>
+                      <PushGuideText item={step} />
+                    </li>
+                  ))}
+                </ol>
+              )}
+              {section.notes && (
+                <ul>
+                  {section.notes.map((note) => (
+                    <li key={note.text}>
+                      <PushGuideText item={note} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ))}
+          <p className="push-guide-closing-note">{pushGuideClosingNote}</p>
+        </div>
+      </div>
+    </dialog>
+  );
+}
 
 export function MyPage() {
   usePageTitle('マイページ');
@@ -72,6 +242,21 @@ export function MyPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [pushStatus, setPushStatus] = useState('');
+  const [pushState, setPushState] = useState<PushState>('off');
+  const [pushUpdating, setPushUpdating] = useState(false);
+  const [otherPushDevices, setOtherPushDevices] = useState<number | null>(null);
+  const [guideOpen, setGuideOpen] = useState(false);
+  const guideTrigger = useRef<HTMLButtonElement>(null);
+  const refreshPushState = useCallback(async () => {
+    const state = await getPushState();
+    setPushState(state);
+    if (!user) return;
+    const { count, error: countError } = await requireSupabase()
+      .from('push_subscriptions')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id);
+    if (!countError) setOtherPushDevices(Math.max(0, (count ?? 0) - (state === 'on' ? 1 : 0)));
+  }, [user]);
   useEffect(() => {
     setDraft(profile);
     const savedStyle = normalizeAvatarStyle(profile?.avatar_style);
@@ -107,6 +292,15 @@ export function MyPage() {
   useEffect(() => {
     void load();
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (tab !== 'notifications') return;
+    void refreshPushState();
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') void refreshPushState();
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, [refreshPushState, tab]);
   if (!user) return <Navigate to="/login?next=%2Fmypage" replace />;
   if (!draft) return <p>読み込み中です…</p>;
   const saveProfile = async (fields: Partial<Profile>) => {
@@ -830,50 +1024,96 @@ export function MyPage() {
       )}
       {tab === 'notifications' && (
         <section className="panel form-panel notification-settings">
-          <h2>通知</h2>
+          <div className="notification-settings-heading">
+            <h2>通知</h2>
+            <button
+              ref={guideTrigger}
+              className="button-secondary push-guide-trigger"
+              onClick={() => setGuideOpen(true)}
+            >
+              <span aria-hidden="true">?</span>
+              設定の方法
+            </button>
+          </div>
           <p>ダイビング予定と新しい事故事例をお知らせします。</p>
+          <p className={`push-state-badge push-state-${pushState}`} role="status">
+            {
+              {
+                on: 'この端末の通知：オン',
+                off: 'この端末の通知：オフ',
+                blocked: 'ブロックされています',
+                unsupported: 'この端末では使えません'
+              }[pushState]
+            }
+          </p>
           {isIosHomeScreenRequired() && (
             <p className="notice">
               iPhoneではSafariの共有メニューから「ホーム画面に追加」した後、このページを開いて通知を許可してください。
             </p>
           )}
-          {!supportsPush() && (
-            <p className="error">このブラウザではプッシュ通知を利用できません。</p>
+          {pushState === 'blocked' && (
+            <p className="notice">ブラウザまたは端末の設定で通知のブロックを解除してください。</p>
           )}
-          <div className="button-row">
+          <div className="push-state-toggle" aria-label="通知の設定">
             <button
-              className="button"
-              disabled={!supportsPush()}
+              className="chip"
+              aria-pressed={pushState === 'on'}
+              disabled={
+                pushUpdating ||
+                pushState === 'on' ||
+                pushState === 'blocked' ||
+                pushState === 'unsupported'
+              }
               onClick={() => {
+                setPushUpdating(true);
+                setPushStatus('設定中…');
                 void enablePush(user.id)
                   .then(() => setPushStatus('通知を有効にしました。'))
                   .catch((cause: unknown) =>
                     setPushStatus(
                       cause instanceof Error ? cause.message : '通知を有効にできませんでした。'
                     )
-                  );
+                  )
+                  .finally(() => {
+                    setPushUpdating(false);
+                    void refreshPushState();
+                  });
               }}
             >
-              通知を有効にする
+              オン
             </button>
             <button
-              className="button-secondary"
-              disabled={!supportsPush()}
+              className="chip"
+              aria-pressed={pushState === 'off'}
+              disabled={
+                pushUpdating ||
+                pushState === 'off' ||
+                pushState === 'blocked' ||
+                pushState === 'unsupported'
+              }
               onClick={() => {
+                setPushUpdating(true);
+                setPushStatus('設定中…');
                 void disablePush(user.id)
                   .then(() => setPushStatus('通知を停止しました。'))
                   .catch((cause: unknown) =>
                     setPushStatus(
                       cause instanceof Error ? cause.message : '通知を停止できませんでした。'
                     )
-                  );
+                  )
+                  .finally(() => {
+                    setPushUpdating(false);
+                    void refreshPushState();
+                  });
               }}
             >
-              通知を停止する
+              オフ
             </button>
+          </div>
+          <div className="button-row">
             <button
               className="button-secondary"
-              disabled={!supportsPush()}
+              disabled={pushState !== 'on' || pushUpdating}
               onClick={() => {
                 void sendPushTest()
                   .then(() =>
@@ -889,6 +1129,10 @@ export function MyPage() {
               テスト通知を送る
             </button>
           </div>
+          {pushState === 'off' && <p className="push-test-hint">通知をオンにすると送れます。</p>}
+          {otherPushDevices !== null && (
+            <p className="push-test-hint">ほかに {otherPushDevices} 台で通知を受け取っています</p>
+          )}
           {pushStatus && <p role="status">{pushStatus}</p>}
         </section>
       )}
@@ -922,6 +1166,11 @@ export function MyPage() {
       )}
       {error && <p className="error">{error}</p>}
       {message && <p className="success">{message}</p>}
+      <PushGuideDialog
+        open={guideOpen}
+        onClose={() => setGuideOpen(false)}
+        trigger={guideTrigger}
+      />
     </>
   );
 }
