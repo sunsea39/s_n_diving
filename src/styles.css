@@ -1121,6 +1121,107 @@ main {
 .profile-stats dd {
   margin: 0;
 }
+.license-editor {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+.license-editor-label {
+  margin: 0;
+  color: var(--navy);
+  font-size: 14px;
+  font-weight: 700;
+}
+.license-selection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.license-selection li {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 3px 5px 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--ink);
+  font-size: 13px;
+}
+.license-selection button {
+  display: grid;
+  width: 24px;
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--navy);
+  font-size: 18px;
+  line-height: 1;
+}
+.license-selection button:hover {
+  background: var(--ground);
+}
+.license-empty,
+.license-limit-message {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+.license-limit-message {
+  color: var(--amber-ink);
+}
+.license-organization-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 3px;
+}
+.license-organization-tabs button {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 11px;
+  background: var(--ground);
+  color: var(--navy);
+  white-space: nowrap;
+}
+.license-organization-tabs button[aria-selected='true'] {
+  border-color: var(--teal);
+  background: var(--teal);
+  color: var(--on-accent);
+}
+.license-ranks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.license-ranks .chip {
+  min-height: 38px;
+  padding: 6px 10px;
+}
+.license-ranks .chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.license-other-form {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+}
+.license-other-form label {
+  flex: 1 1 220px;
+}
+.license-other-form .button-secondary {
+  flex: 0 0 auto;
+}
 .avatar-editor > svg {
   width: 96px;
   height: 96px;

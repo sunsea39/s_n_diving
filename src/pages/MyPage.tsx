@@ -39,6 +39,17 @@ import {
   type PushGuideItem,
   type PushGuideDevice
 } from '../content/pushGuide';
+import {
+  addLicense,
+  hasLicense,
+  initialLicenseOrganization,
+  LICENSE_LIMIT,
+  LICENSE_ORGANIZATIONS,
+  LICENSE_RANKS,
+  removeLicense,
+  toggleLicense,
+  type LicenseOrganization
+} from '../content/licenses';
 
 type Tab = 'profile' | 'experience' | 'bookmarks' | 'posts' | 'gear' | 'notifications' | 'account';
 const tabs: [Tab, string][] = [
@@ -223,6 +234,9 @@ export function MyPage() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [profileEditing, setProfileEditing] = useState(false);
   const [experienceEditing, setExperienceEditing] = useState(false);
+  const [licenseOrganization, setLicenseOrganization] = useState<LicenseOrganization>('BSAC');
+  const [otherLicenseRank, setOtherLicenseRank] = useState('');
+  const [licenseLimitMessage, setLicenseLimitMessage] = useState('');
   const [style, setStyle] = useState<AvatarStyle>(DEFAULT_AVATAR_STYLE);
   const [log, setLog] = useState({
     dived_on: new Date().toISOString().slice(0, 10),
@@ -261,6 +275,9 @@ export function MyPage() {
     setDraft(profile);
     const savedStyle = normalizeAvatarStyle(profile?.avatar_style);
     if (savedStyle) setStyle(savedStyle);
+    setLicenseOrganization(initialLicenseOrganization(profile?.licenses ?? []));
+    setOtherLicenseRank('');
+    setLicenseLimitMessage('');
   }, [profile]);
   const load = async () => {
     if (!user) return;
@@ -304,6 +321,52 @@ export function MyPage() {
   if (!user) return <Navigate to="/login?next=%2Fmypage" replace />;
   if (!draft) return <p>読み込み中です…</p>;
   const availableDocSlugs = new Set(docs.map((doc) => doc.slug));
+  const licenses = draft.licenses ?? [];
+  const licenseLimitReached = licenses.length >= LICENSE_LIMIT;
+  const resetLicenseEditor = (source: Profile) => {
+    setLicenseOrganization(initialLicenseOrganization(source.licenses ?? []));
+    setOtherLicenseRank('');
+    setLicenseLimitMessage('');
+  };
+  const startExperienceEditing = () => {
+    if (profile) {
+      setDraft(profile);
+      resetLicenseEditor(profile);
+    }
+    setError('');
+    setExperienceEditing(true);
+  };
+  const cancelExperienceEditing = () => {
+    if (profile) {
+      setDraft(profile);
+      resetLicenseEditor(profile);
+    }
+    setExperienceEditing(false);
+  };
+  const selectLicense = (license: { org: string; rank: string }) => {
+    if (hasLicense(licenses, license)) {
+      setDraft({ ...draft, licenses: toggleLicense(licenses, license) });
+      setLicenseLimitMessage('');
+      return;
+    }
+    if (licenseLimitReached) {
+      setLicenseLimitMessage('ライセンスは5件まで登録できます');
+      return;
+    }
+    setDraft({ ...draft, licenses: addLicense(licenses, license) });
+    setLicenseLimitMessage('');
+  };
+  const addOtherLicense = () => {
+    const rank = otherLicenseRank.trim();
+    if (!rank) return;
+    if (licenseLimitReached) {
+      setLicenseLimitMessage('ライセンスは5件まで登録できます');
+      return;
+    }
+    setDraft({ ...draft, licenses: addLicense(licenses, { org: 'その他', rank }) });
+    setOtherLicenseRank('');
+    setLicenseLimitMessage('');
+  };
   const saveProfile = async (fields: Partial<Profile>) => {
     setError('');
     setMessage('');
@@ -654,9 +717,9 @@ export function MyPage() {
               <h2>ダイビング経験</h2>
               <button
                 className="button-secondary"
-                onClick={() => setExperienceEditing(!experienceEditing)}
+                onClick={experienceEditing ? cancelExperienceEditing : startExperienceEditing}
               >
-                {experienceEditing ? '表示に戻る' : '編集'}
+                {experienceEditing ? 'キャンセル' : '編集'}
               </button>
             </div>
             {experienceEditing ? (
@@ -683,25 +746,111 @@ export function MyPage() {
                     onChange={(e) => setDraft({ ...draft, favorite_areas: e.target.value })}
                   />
                 </label>
-                <label>
-                  ライセンス（団体・ランクを1行ずつ）
-                  <textarea
-                    value={(draft.licenses ?? []).map((x) => `${x.org}｜${x.rank}`).join('\n')}
-                    onChange={(e) =>
-                      setDraft({
-                        ...draft,
-                        licenses: e.target.value
-                          .split('\n')
-                          .filter(Boolean)
-                          .slice(0, 5)
-                          .map((line) => {
-                            const [org, rank] = line.split('｜');
-                            return { org: org || 'その他', rank: rank || '' };
-                          })
+                <div className="license-editor">
+                  <p className="license-editor-label">登録するライセンス</p>
+                  {licenses.length ? (
+                    <ul className="license-selection" aria-label="選択したライセンス">
+                      {licenses.map((license) => (
+                        <li key={`${license.org}-${license.rank}`}>
+                          <span>{`${license.org} ${license.rank}`}</span>
+                          <button
+                            type="button"
+                            aria-label={`${license.org} ${license.rank}を削除`}
+                            onClick={() => {
+                              setDraft({
+                                ...draft,
+                                licenses: removeLicense(licenses, license)
+                              });
+                              setLicenseLimitMessage('');
+                            }}
+                          >
+                            ×
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="license-empty">まだ選んでいません</p>
+                  )}
+
+                  <div
+                    className="license-organization-tabs"
+                    role="tablist"
+                    aria-label="ライセンス団体を選ぶ"
+                  >
+                    {LICENSE_ORGANIZATIONS.map((organization) => (
+                      <button
+                        key={organization}
+                        type="button"
+                        role="tab"
+                        aria-selected={licenseOrganization === organization}
+                        aria-controls="license-ranks"
+                        id={`license-organization-${organization}`}
+                        onClick={() => {
+                          setLicenseOrganization(organization);
+                          setLicenseLimitMessage('');
+                        }}
+                      >
+                        {organization}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div
+                    className="license-ranks"
+                    id="license-ranks"
+                    role="tabpanel"
+                    aria-labelledby={`license-organization-${licenseOrganization}`}
+                  >
+                    {licenseOrganization === 'その他' ? (
+                      <form
+                        className="license-other-form"
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          addOtherLicense();
+                        }}
+                      >
+                        <label>
+                          その他のライセンス
+                          <input
+                            maxLength={60}
+                            value={otherLicenseRank}
+                            onChange={(event) => setOtherLicenseRank(event.target.value)}
+                          />
+                        </label>
+                        <button
+                          className="button-secondary"
+                          type="submit"
+                          disabled={licenseLimitReached || !otherLicenseRank.trim()}
+                        >
+                          追加
+                        </button>
+                      </form>
+                    ) : (
+                      LICENSE_RANKS[licenseOrganization].map((rank) => {
+                        const license = { org: licenseOrganization, rank };
+                        const selected = hasLicense(licenses, license);
+                        return (
+                          <button
+                            className="chip"
+                            key={rank}
+                            type="button"
+                            aria-pressed={selected}
+                            disabled={licenseLimitReached && !selected}
+                            onClick={() => selectLicense(license)}
+                          >
+                            {rank}
+                          </button>
+                        );
                       })
-                    }
-                  />
-                </label>
+                    )}
+                  </div>
+                  {(licenseLimitReached || licenseLimitMessage) && (
+                    <p className="license-limit-message" role="status">
+                      {licenseLimitMessage || 'ライセンスは5件まで登録できます'}
+                    </p>
+                  )}
+                </div>
                 <button
                   className="button"
                   onClick={() =>
