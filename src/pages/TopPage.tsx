@@ -54,7 +54,7 @@ function RecentThreads() {
 
 export function TopPage() {
   usePageTitle('ホーム');
-  const { docs, news, accidents, isBoardMember, loading } = useAppData();
+  const { docs, news, accidents, isBoardMember, loading, user } = useAppData();
   const text = usePageText('home');
   const nextDive = selectNextDive(news);
   const newestDocs = latestDocs(docs);
@@ -82,14 +82,23 @@ export function TopPage() {
         <HeroScene />
         <section className="next-dive">
           <span className="next-dive-kicker">NEXT DIVE</span>
-          {nextDive ? (
+          {isBoardMember && nextDive ? (
             <p>
               <b>{formatNextDive(nextDive)}</b>
               {nextDive.place && <span> ・ {nextDive.place}</span>}
               {nextDive.staff && <small>担当：{nextDive.staff}</small>}
             </p>
-          ) : (
+          ) : isBoardMember ? (
             <p>次回の予定は未定です。</p>
+          ) : user ? (
+            <p>承認されると次のダイビング予定が見られます。</p>
+          ) : (
+            <div>
+              <p>次のダイビング予定は、ログインした仲間だけが見られます。</p>
+              <Link className="button-secondary" to="/login">
+                ログイン
+              </Link>
+            </div>
           )}
         </section>
       </section>

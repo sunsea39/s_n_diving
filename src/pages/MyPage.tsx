@@ -8,6 +8,7 @@ import {
   HAIR,
   PALETTE,
   PRESETS,
+  normalizeAvatarStyle,
   type AvatarStyle
 } from '../components/DiverAvatar';
 import { cropAvatar } from '../lib/accounts';
@@ -62,7 +63,11 @@ export function MyPage() {
   const [confirmation, setConfirmation] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  useEffect(() => setDraft(profile), [profile]);
+  useEffect(() => {
+    setDraft(profile);
+    const savedStyle = normalizeAvatarStyle(profile?.avatar_style);
+    if (savedStyle) setStyle(savedStyle);
+  }, [profile]);
   const load = async () => {
     if (!user) return;
     const client = requireSupabase();
@@ -267,7 +272,8 @@ export function MyPage() {
                           face: preset.face,
                           suit: preset.suit,
                           bg: preset.bg,
-                          mask: preset.mask
+                          accessory: preset.accessory,
+                          bandanaColor: preset.bandanaColor
                         })
                       }
                     >
@@ -355,14 +361,41 @@ export function MyPage() {
                     ))}
                   </div>
                 </div>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={style.mask}
-                    onChange={(e) => setStyle({ ...style, mask: e.target.checked })}
-                  />
-                  マスクあり
-                </label>
+                <div>
+                  <small>小物</small>
+                  {(['none', 'mask', 'bandana'] as const).map((accessory) => (
+                    <button
+                      key={accessory}
+                      aria-pressed={style.accessory === accessory}
+                      onClick={() => setStyle({ ...style, accessory })}
+                    >
+                      {{ none: 'なし', mask: 'マスク', bandana: 'バンダナ' }[accessory]}
+                    </button>
+                  ))}
+                </div>
+                {style.accessory === 'bandana' && (
+                  <div>
+                    <small>バンダナの色</small>
+                    {Object.keys(PALETTE.bandana).map((key) => (
+                      <button
+                        key={key}
+                        aria-label={`バンダナ：${key}`}
+                        aria-pressed={style.bandanaColor === key}
+                        onClick={() =>
+                          setStyle({
+                            ...style,
+                            bandanaColor: key as AvatarStyle['bandanaColor']
+                          })
+                        }
+                        style={{
+                          backgroundColor: PALETTE.bandana[key as AvatarStyle['bandanaColor']]
+                        }}
+                      >
+                        {key}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <label>
                 表示名

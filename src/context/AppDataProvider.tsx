@@ -104,7 +104,10 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     void refreshSession();
 
     if (!supabase) return undefined;
-    const { data } = supabase.auth.onAuthStateChange(() => void refreshSession());
+    const { data } = supabase.auth.onAuthStateChange(() => {
+      void refreshSession();
+      void refreshPublic();
+    });
     return () => data.subscription.unsubscribe();
   }, [refreshPublic, refreshSession]);
 

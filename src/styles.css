@@ -251,10 +251,17 @@ main,
 }
 .header-avatar {
   display: inline-flex;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   align-items: center;
   justify-content: center;
+}
+.header-avatar .avatar-small {
+  width: 38px;
+  height: 38px;
+}
+.header-avatar + .menu-button {
+  margin-left: -2px;
 }
 @media (max-width: 1023px) {
   .header-inner {
@@ -367,9 +374,14 @@ main,
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 .member-row > div {
   flex: 1 1 220px;
+  min-width: 0;
+}
+.member-row .meta {
+  overflow-wrap: anywhere;
 }
 .member-actions {
   display: flex;
@@ -499,6 +511,8 @@ main {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  min-width: 0;
+  max-width: 100%;
   margin-top: 16px;
 }
 .hero {
@@ -670,6 +684,9 @@ main {
   justify-content: space-between;
   gap: 12px;
   margin: 34px 0 12px;
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
 }
 .section-heading h2 {
   margin: 0;
@@ -750,6 +767,8 @@ main {
   gap: 8px;
   overflow-x: auto;
   padding: 4px 0 8px;
+  min-width: 0;
+  max-width: 100%;
 }
 .anchor-chips a,
 .filter-row button,
@@ -917,7 +936,17 @@ main {
 }
 .admin-table-scroll {
   position: relative;
+  max-width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.admin-table-scroll table {
+  width: max-content;
+  min-width: 100%;
+}
+.admin-table-scroll th,
+.admin-table-scroll td {
+  overflow-wrap: anywhere;
 }
 .admin-table-scroll::after {
   content: '';
@@ -1201,7 +1230,20 @@ textarea {
 }
 .admin-layout {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
+  min-width: 0;
+  max-width: 100%;
+}
+.admin-layout > *,
+.admin-layout > * > * {
+  min-width: 0;
+}
+.admin-layout .panel,
+.admin-layout .admin-list,
+.admin-layout .form-panel {
+  min-width: 0;
+  max-width: 100%;
 }
 .admin-tabs {
   margin-bottom: 16px;
@@ -1271,6 +1313,7 @@ textarea {
 .admin-list {
   display: grid;
   gap: 10px;
+  min-width: 0;
 }
 .admin-list .panel {
   padding: 14px;
@@ -1293,16 +1336,17 @@ textarea {
 }
 .menu-button {
   display: inline-grid;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   place-content: center;
   border: 0;
   color: var(--navy);
   background: transparent;
 }
 .menu-button svg {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
+  stroke-width: 2.5;
 }
 .drawer-backdrop {
   position: fixed;
@@ -1520,6 +1564,31 @@ body.drawer-open {
 }
 .table-scroll {
   overflow-x: auto;
+}
+.csv-dropzone {
+  display: grid;
+  min-height: 72px;
+  margin: 10px 0;
+  place-items: center;
+  border: 1.5px dashed var(--field-border);
+  border-radius: 8px;
+  color: var(--muted);
+  text-align: center;
+}
+.csv-preview {
+  margin: 12px 0;
+}
+.csv-error-row {
+  background: var(--danger-soft);
+}
+.csv-exclude {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0;
+}
+.csv-exclude input {
+  width: auto;
 }
 table {
   width: 100%;
@@ -2295,7 +2364,7 @@ th {
     display: none;
   }
   .admin-layout {
-    grid-template-columns: 190px 1fr;
+    grid-template-columns: 190px minmax(0, 1fr);
     align-items: start;
   }
   .admin-tabs {

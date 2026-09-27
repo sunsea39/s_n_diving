@@ -12,6 +12,15 @@ export const PALETTE = {
     teal: '#1B998B'
   },
   suit: { navy: '#0B3C5D', black: '#22272B', teal: '#1B998B', coral: '#D64527' },
+  bandana: {
+    red: '#D64527',
+    navy: '#0B3C5D',
+    teal: '#1B998B',
+    yellow: '#F3C969',
+    pink: '#E88BA8',
+    black: '#22272B',
+    white: '#F4F4F2'
+  },
   bg: {
     mist: '#EEF5F6',
     sea: '#CDEBE5',
@@ -67,7 +76,13 @@ export type AvatarStyle = {
   face: keyof typeof FACE;
   suit: keyof typeof PALETTE.suit;
   bg: keyof typeof PALETTE.bg;
+  accessory: 'none' | 'mask' | 'bandana';
+  bandanaColor: keyof typeof PALETTE.bandana;
+};
+type LegacyAvatarStyle = Omit<AvatarStyle, 'accessory' | 'bandanaColor'> & {
   mask: boolean;
+  accessory?: AvatarStyle['accessory'];
+  bandanaColor?: AvatarStyle['bandanaColor'];
 };
 export const DEFAULT_AVATAR_STYLE: AvatarStyle = {
   skin: 'fair',
@@ -76,7 +91,8 @@ export const DEFAULT_AVATAR_STYLE: AvatarStyle = {
   face: 'smile',
   suit: 'navy',
   bg: 'mist',
-  mask: false
+  accessory: 'none',
+  bandanaColor: 'red'
 };
 export const PRESETS: (AvatarStyle & { name: string })[] = [
   { name: 'ショート・紺', ...DEFAULT_AVATAR_STYLE },
@@ -88,7 +104,8 @@ export const PRESETS: (AvatarStyle & { name: string })[] = [
     face: 'calm',
     suit: 'teal',
     bg: 'sand',
-    mask: false
+    accessory: 'none',
+    bandanaColor: 'red'
   },
   {
     name: 'ロング・コーラル',
@@ -98,7 +115,8 @@ export const PRESETS: (AvatarStyle & { name: string })[] = [
     face: 'wink',
     suit: 'coral',
     bg: 'sea',
-    mask: false
+    accessory: 'none',
+    bandanaColor: 'red'
   },
   {
     name: 'ベリーショート・黒',
@@ -108,7 +126,8 @@ export const PRESETS: (AvatarStyle & { name: string })[] = [
     face: 'cool',
     suit: 'black',
     bg: 'sky',
-    mask: false
+    accessory: 'none',
+    bandanaColor: 'red'
   },
   {
     name: 'ポニーテール・マスク',
@@ -118,7 +137,8 @@ export const PRESETS: (AvatarStyle & { name: string })[] = [
     face: 'smile',
     suit: 'navy',
     bg: 'coral',
-    mask: true
+    accessory: 'mask',
+    bandanaColor: 'red'
   },
   {
     name: 'おだんご・ティール',
@@ -128,7 +148,8 @@ export const PRESETS: (AvatarStyle & { name: string })[] = [
     face: 'calm',
     suit: 'teal',
     bg: 'mist',
-    mask: false
+    accessory: 'none',
+    bandanaColor: 'red'
   },
   {
     name: 'ショート・マスク',
@@ -138,7 +159,8 @@ export const PRESETS: (AvatarStyle & { name: string })[] = [
     face: 'wink',
     suit: 'black',
     bg: 'sea',
-    mask: true
+    accessory: 'mask',
+    bandanaColor: 'red'
   },
   {
     name: 'ロング・紺',
@@ -148,7 +170,8 @@ export const PRESETS: (AvatarStyle & { name: string })[] = [
     face: 'smile',
     suit: 'navy',
     bg: 'sand',
-    mask: false
+    accessory: 'none',
+    bandanaColor: 'red'
   },
   {
     name: 'ボブ・グレー',
@@ -158,7 +181,8 @@ export const PRESETS: (AvatarStyle & { name: string })[] = [
     face: 'calm',
     suit: 'coral',
     bg: 'sky',
-    mask: false
+    accessory: 'none',
+    bandanaColor: 'red'
   },
   {
     name: 'ベリーショート・夜',
@@ -168,7 +192,8 @@ export const PRESETS: (AvatarStyle & { name: string })[] = [
     face: 'smile',
     suit: 'teal',
     bg: 'night',
-    mask: false
+    accessory: 'none',
+    bandanaColor: 'red'
   },
   {
     name: 'ポニーテール・黒',
@@ -178,7 +203,8 @@ export const PRESETS: (AvatarStyle & { name: string })[] = [
     face: 'cool',
     suit: 'black',
     bg: 'mist',
-    mask: false
+    accessory: 'none',
+    bandanaColor: 'red'
   },
   {
     name: 'ショート・ティール髪',
@@ -188,7 +214,52 @@ export const PRESETS: (AvatarStyle & { name: string })[] = [
     face: 'wink',
     suit: 'navy',
     bg: 'sand',
-    mask: true
+    accessory: 'mask',
+    bandanaColor: 'red'
+  },
+  {
+    name: 'バンダナ・赤',
+    skin: 'tan',
+    hair: 'short',
+    hairColor: 'black',
+    face: 'smile',
+    suit: 'teal',
+    bg: 'sand',
+    accessory: 'bandana',
+    bandanaColor: 'red'
+  },
+  {
+    name: 'バンダナ・紺',
+    skin: 'fair',
+    hair: 'long',
+    hairColor: 'brown',
+    face: 'calm',
+    suit: 'coral',
+    bg: 'mist',
+    accessory: 'bandana',
+    bandanaColor: 'navy'
+  },
+  {
+    name: 'バンダナ・黄',
+    skin: 'brown',
+    hair: 'buzz',
+    hairColor: 'black',
+    face: 'wink',
+    suit: 'navy',
+    bg: 'sea',
+    accessory: 'bandana',
+    bandanaColor: 'yellow'
+  },
+  {
+    name: 'バンダナ・ピンク',
+    skin: 'light',
+    hair: 'pony',
+    hairColor: 'light',
+    face: 'smile',
+    suit: 'teal',
+    bg: 'coral',
+    accessory: 'bandana',
+    bandanaColor: 'pink'
   }
 ];
 const shade = (hex: string, f: number) => {
@@ -198,18 +269,40 @@ const shade = (hex: string, f: number) => {
   );
   return `#${c.map((v) => v.toString(16).padStart(2, '0')).join('')}`;
 };
-export function isAvatarStyle(value: unknown): value is AvatarStyle {
-  if (!value || typeof value !== 'object') return false;
-  const s = value as AvatarStyle;
-  return (
+export function normalizeAvatarStyle(value: unknown): AvatarStyle | null {
+  if (!value || typeof value !== 'object') return null;
+  const s = value as Partial<AvatarStyle & LegacyAvatarStyle>;
+  const baseIsValid =
+    typeof s.skin === 'string' &&
     s.skin in PALETTE.skin &&
+    typeof s.hair === 'string' &&
     s.hair in HAIR &&
+    typeof s.hairColor === 'string' &&
     s.hairColor in PALETTE.hair &&
+    typeof s.face === 'string' &&
     s.face in FACE &&
+    typeof s.suit === 'string' &&
     s.suit in PALETTE.suit &&
-    s.bg in PALETTE.bg &&
-    typeof s.mask === 'boolean'
-  );
+    typeof s.bg === 'string' &&
+    s.bg in PALETTE.bg;
+  if (!baseIsValid) return null;
+  const accessory = s.accessory ?? (s.mask ? 'mask' : 'none');
+  const bandanaColor = s.bandanaColor ?? 'red';
+  if (!['none', 'mask', 'bandana'].includes(accessory) || !(bandanaColor in PALETTE.bandana))
+    return null;
+  return {
+    skin: s.skin as AvatarStyle['skin'],
+    hair: s.hair as AvatarStyle['hair'],
+    hairColor: s.hairColor as AvatarStyle['hairColor'],
+    face: s.face as AvatarStyle['face'],
+    suit: s.suit as AvatarStyle['suit'],
+    bg: s.bg as AvatarStyle['bg'],
+    accessory,
+    bandanaColor: bandanaColor as AvatarStyle['bandanaColor']
+  };
+}
+export function isAvatarStyle(value: unknown): value is AvatarStyle {
+  return normalizeAvatarStyle(value) !== null;
 }
 export function DiverAvatar({ style, title }: { style: AvatarStyle; title?: string }) {
   const clip = useId().replace(/:/g, '');
@@ -218,7 +311,8 @@ export function DiverAvatar({ style, title }: { style: AvatarStyle; title?: stri
     w = PALETTE.suit[style.suit],
     b = PALETTE.bg[style.bg],
     H = HAIR[style.hair],
-    ink = '#2B2522';
+    ink = '#2B2522',
+    collar = style.suit === 'teal' ? '#0B3C5D' : '#1B998B';
   return (
     <svg
       viewBox="0 0 120 120"
@@ -238,7 +332,7 @@ export function DiverAvatar({ style, title }: { style: AvatarStyle; title?: stri
         <path
           d="M50 88 L60 101 L70 88"
           fill="none"
-          stroke="#1B998B"
+          stroke={collar}
           strokeWidth="3"
           strokeLinejoin="round"
         />
@@ -318,7 +412,8 @@ export function DiverAvatar({ style, title }: { style: AvatarStyle; title?: stri
           </>
         )}
         <path d={H.front} fill={h} />
-        {style.mask && (
+        {style.accessory === 'bandana' && <Bandana color={PALETTE.bandana[style.bandanaColor]} />}
+        {style.accessory === 'mask' && (
           <>
             <path
               d="M35 44 C45 39 75 39 85 44"
@@ -342,5 +437,24 @@ export function DiverAvatar({ style, title }: { style: AvatarStyle; title?: stri
         )}
       </g>
     </svg>
+  );
+}
+
+function Bandana({ color }: { color: string }) {
+  const dot = color === '#F4F4F2' || color === '#F3C969' ? '#0B3C5D' : '#FFFFFF';
+  return (
+    <>
+      <path d="M35.5 47 C44 39.5 76 39.5 84.5 47 L84 54 C76 46.5 44 46.5 36 54 Z" fill={color} />
+      <g fill={dot} opacity=".85">
+        <circle cx="44" cy="46.2" r="1.3" />
+        <circle cx="52" cy="44.4" r="1.3" />
+        <circle cx="60" cy="43.8" r="1.3" />
+        <circle cx="68" cy="44.4" r="1.3" />
+        <circle cx="76" cy="46.2" r="1.3" />
+      </g>
+      <circle cx="86" cy="50.5" r="3.6" fill={color} />
+      <path d="M88.5 49.5 L98 43.5 L96 52.5 Z" fill={color} />
+      <path d="M88.5 52 L97 59 L91.5 59.5 Z" fill={color} />
+    </>
   );
 }

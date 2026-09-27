@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { avatarColor, avatarInitial } from '../lib/logic';
 import { avatarUrl } from '../lib/accounts';
-import { DiverAvatar, isAvatarStyle } from './DiverAvatar';
+import { DiverAvatar, normalizeAvatarStyle } from './DiverAvatar';
 
 export function Avatar({
   id,
@@ -19,10 +19,11 @@ export function Avatar({
   small?: boolean;
 }) {
   const image = avatarUrl(path);
+  const avatarStyle = normalizeAvatarStyle(style);
   const content = image ? (
     <img src={image} alt="" />
-  ) : isAvatarStyle(style) ? (
-    <DiverAvatar style={style} />
+  ) : avatarStyle ? (
+    <DiverAvatar style={avatarStyle} />
   ) : (
     <span style={{ backgroundColor: avatarColor(name) }}>{avatarInitial(name)}</span>
   );

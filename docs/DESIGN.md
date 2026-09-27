@@ -1,4 +1,13 @@
-# N×S_Diving 実装仕様 v2.1
+# N×S_Diving 実装仕様 v2.3
+
+## v2.3
+
+- Admin grids use `minmax(0, 1fr)` and all admin table wrappers constrain their width and provide their own horizontal scrolling, so a long member email cannot widen the mobile viewport.
+- A diver illustration stores `accessory` (`none` / `mask` / `bandana`) and `bandanaColor`; rendering normalizes legacy `mask: true` data as `accessory: 'mask'` and saves the v2.3 shape.
+- Header controls use 48px tap targets, with a 38px account avatar and 28px, 2.5px hamburger icon.
+- Dive news is protected in the database: approved members read schedules, editors and owners also read drafts, and published `other` news is public. The home NEXT DIVE card follows the same membership state.
+- Owners can preview/import the supplied accident CSV template from `/admin/accidents`. RFC 4180 parsing, UTF-8/Shift_JIS decoding, header mapping, per-row validation, and upserts by `slug` are client-side; RLS remains the authority for writes.
+- Apply `20260929000000_v2_3.sql` after v2.2. It is additive and re-runnable.
 
 ## v2.2
 

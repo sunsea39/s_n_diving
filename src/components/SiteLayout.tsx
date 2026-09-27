@@ -198,7 +198,7 @@ export function SiteLayout() {
             aria-expanded={open}
             aria-controls="site-drawer"
           >
-            <MenuIcon />
+            <MenuIcon strokeWidth={2.5} />
           </button>
         </div>
       </header>

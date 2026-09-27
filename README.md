@@ -1,8 +1,10 @@
 # N×S_Diving
 
-## v2.2 migration
+## v2.3 migration
 
-Apply `supabase/migrations/20260928000000_v2_2.sql` after the existing four migrations, using the Supabase SQL Editor (or the project migration workflow). It is additive and re-runnable. It creates page copy, bookmarks, dive logs and profile aggregate fields, and upgrades news to category-based dive schedules. Refresh the browser session after applying it so column privileges are reloaded.
+Apply `supabase/migrations/20260929000000_v2_3.sql` after the existing migrations (including v2.2), using the Supabase SQL Editor or the project migration workflow. It is additive and re-runnable. It adds the v2.3 avatar accessory validation and limits dive-schedule news to approved members; public “other” news remains public after publication. Refresh browser sessions after applying it.
+
+Owners can import accident examples at `/admin/accidents` with **CSV で取り込む**. Download the template first; files accept UTF-8 (with or without BOM) and Shift_JIS, up to 200 rows and 1 MB. Review the per-row preview before importing. Do not include names or other personally identifying information.
 
 ダイビング情報の共有サイトです。仲間どうしで知識や経験を共有し、より理解を深めて、安全に楽しく潜れるようにするスマホ最優先の Web アプリです。公開 URL は `https://<専用GitHubアカウント>.github.io/s_n_diving/` を想定しています。
 
@@ -15,7 +17,7 @@ Apply `supabase/migrations/20260928000000_v2_2.sql` after the existing four migr
 ## 初回セットアップ
 
 1. 専用 GitHub アカウントで `s_n_diving` リポジトリを作成して push し、Pages の Source を「GitHub Actions」に設定します。
-2. Supabase プロジェクトを作成します。SQL Editor で `supabase/migrations/20260924000000_phase1.sql`、`supabase/migrations/20260926000000_accidents_and_blocks.sql`、`supabase/migrations/20260927000000_accounts.sql`、最後に `supabase/seed.sql` をこの順で実行します。migration は既存 DB への追加・再実行に対応しています。`node scripts/generate-seed.mjs` で JSON から seed SQL を再生成できます。
+2. Supabase プロジェクトを作成します。SQL Editor で migration をファイル名順に実行します（`20260924000000_phase1.sql`、`20260926000000_accidents_and_blocks.sql`、`20260927000000_accounts.sql`、`20260927010000_security_fix.sql`、`20260928000000_v2_2.sql`、`20260929000000_v2_3.sql`）。最後に `supabase/seed.sql` を実行します。migration は既存 DB への追加・再実行に対応しています。`node scripts/generate-seed.mjs` で JSON から seed SQL を再生成できます。
 3. Authentication → Providers → Email で **Confirm email を OFF** にし、Authentication → Providers で **Anonymous sign-ins を OFF** にします。
 4. ダイビング入門の資料を登録する場合は、ローカルの `private/manual/manual-seed.sql` を SQL Editor で実行します。この資料本文は公開リポジトリには含めません。
 5. 最初の管理者は既存の `admins` 行から migration が owner に移行します。新規サイトでは最初の登録後、SQL Editor で対象の `profiles.role` を `owner` に設定してください。以後の承認・権限変更は `/admin/members` で行います。権限の正本は `profiles.role` です。

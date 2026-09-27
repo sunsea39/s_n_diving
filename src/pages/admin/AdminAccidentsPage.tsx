@@ -1,8 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AccidentCard } from '../AccidentsPage';
 import { useAppData } from '../../context/AppDataContext';
 import { accidentOutcomes, reorder, validateSlug } from '../../lib/logic';
+import {
+  decodeAccidentCsv,
+  previewAccidentCsv,
+  type AccidentCsvPreview
+} from '../../lib/accidentCsv';
 import { usePageTitle } from '../../lib/pageTitle';
 import { requireSupabase } from '../../lib/supabase';
 import type { Accident, AccidentOutcome, AccidentSource, AccidentTimelineItem } from '../../types';
@@ -39,6 +44,181 @@ const emptyAccident = (): Accident => ({
   sources: [],
   status: 'draft'
 });
+
+function AccidentCsvImport({ onImported }: { onImported: () => Promise<void> }) {
+  const { refreshPublic } = useAppData();
+  const input = useRef<HTMLInputElement>(null);
+  const [preview, setPreview] = useState<AccidentCsvPreview | null>(null);
+  const [excludeErrors, setExcludeErrors] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState('');
+
+  const readFile = async (file: File | undefined) => {
+    setResult('');
+    if (!file) return;
+    if (file.size > 1024 * 1024) {
+      setPreview({ rows: [], errors: ['CSV は 1 MB 以下にしてください。'], encoding: 'UTF-8' });
+      return;
+    }
+    try {
+      const { text, encoding } = decodeAccidentCsv(await file.arrayBuffer());
+      const records = previewAccidentCsv(text, {
+        existingSlugs: [],
+        documentSlugs: [],
+        encoding
+      });
+      if (records.errors.length) {
+        setPreview(records);
+        return;
+      }
+      if (records.rows.length > 200) {
+        setPreview({ ...records, rows: [], errors: ['CSV は 200 行以下にしてください。'] });
+        return;
+      }
+      const client = requireSupabase();
+      const [accidentResult, documentResult] = await Promise.all([
+        client.from('accidents').select('slug'),
+        client.from('docs').select('slug')
+      ]);
+      setPreview(
+        previewAccidentCsv(text, {
+          existingSlugs: (accidentResult.data ?? []).map((item) => item.slug as string),
+          documentSlugs: (documentResult.data ?? []).map((item) => item.slug as string),
+          encoding
+        })
+      );
+    } catch (cause) {
+      setPreview({
+        rows: [],
+        errors: [cause instanceof Error ? cause.message : 'CSV を読み込めませんでした。'],
+        encoding: 'UTF-8'
+      });
+    }
+  };
+
+  const importRows = async () => {
+    if (!preview) return;
+    const errorRows = preview.rows.filter((row) => row.action === 'error');
+    if (errorRows.length && !excludeErrors) return;
+    const rows = preview.rows.filter((row) => row.accident);
+    setBusy(true);
+    let created = 0;
+    let updated = 0;
+    let failed = 0;
+    for (const row of rows) {
+      const response = await requireSupabase()
+        .from('accidents')
+        .upsert(row.accident!, { onConflict: 'slug' });
+      if (response.error) failed += 1;
+      else if (row.action === 'update') updated += 1;
+      else created += 1;
+    }
+    setBusy(false);
+    setResult(`取り込み完了：新規 ${created} 件・更新 ${updated} 件・失敗 ${failed} 件`);
+    if (created || updated) {
+      await onImported();
+      await refreshPublic();
+    }
+  };
+
+  const errors = preview?.rows.filter((row) => row.action === 'error').length ?? 0;
+  const importable = preview?.rows.filter((row) => row.accident).length ?? 0;
+  return (
+    <section className="panel form-panel csv-import">
+      <h2>CSV で取り込む</h2>
+      <p className="notice">
+        当事者の氏名や個人を特定できる情報は入力しないでください。報道・公的報告書は自分の言葉で要約し、出典をリンクしてください。
+      </p>
+      <p>
+        <a href={import.meta.env.BASE_URL + 'templates/accidents-template.csv'} download>
+          テンプレートをダウンロード
+        </a>{' '}
+        （見出し名で列を対応づけます。順番は変えられます）
+      </p>
+      <p className="meta">
+        発生日は YYYY-MM-DD、結果は
+        死亡／重症／軽症／ヒヤリ、タグは「、」「,」「／」区切り、出典は「ラベル |
+        https://…」です。空欄の公開状態は下書きになります。
+      </p>
+      <input
+        ref={input}
+        className="file-input"
+        type="file"
+        accept=".csv,text/csv"
+        onChange={(event) => void readFile(event.target.files?.[0])}
+      />
+      <div
+        className="csv-dropzone"
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          event.preventDefault();
+          void readFile(event.dataTransfer.files[0]);
+        }}
+      >
+        CSV をここへドラッグ＆ドロップ
+      </div>
+      {preview?.errors.map((error) => (
+        <p className="error" key={error}>
+          {error}
+        </p>
+      ))}
+      {preview && !preview.errors.length && (
+        <>
+          <p className="meta">
+            文字コード：{preview.encoding} ／ {preview.rows.length} 行
+          </p>
+          <div className="admin-table-scroll csv-preview">
+            <table>
+              <thead>
+                <tr>
+                  <th>行</th>
+                  <th>判定</th>
+                  <th>slug</th>
+                  <th>タイトル</th>
+                  <th>内容</th>
+                </tr>
+              </thead>
+              <tbody>
+                {preview.rows.map((row) => (
+                  <tr
+                    key={row.line}
+                    className={row.action === 'error' ? 'csv-error-row' : undefined}
+                  >
+                    <td>{row.line}</td>
+                    <td>
+                      {row.action === 'new' ? '新規' : row.action === 'update' ? '更新' : 'エラー'}
+                    </td>
+                    <td>{row.accident?.slug ?? '—'}</td>
+                    <td>{row.accident?.title ?? '—'}</td>
+                    <td>{[...row.messages, ...row.warnings].join(' / ') || '確認済み'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {errors > 0 && (
+            <label className="csv-exclude">
+              <input
+                type="checkbox"
+                checked={excludeErrors}
+                onChange={(event) => setExcludeErrors(event.target.checked)}
+              />
+              エラーの {errors} 行を除外して取り込む
+            </label>
+          )}
+          <button
+            className="button"
+            disabled={busy || !importable || (errors > 0 && !excludeErrors)}
+            onClick={() => void importRows()}
+          >
+            {busy ? '取り込み中…' : `${importable} 件を取り込む`}
+          </button>
+        </>
+      )}
+      {result && <p className="success">{result}</p>}
+    </section>
+  );
+}
 function Controls<T>({
   items,
   index,
@@ -90,12 +270,16 @@ function StringRows({
 export function AdminAccidentsListPage() {
   usePageTitle('事故事例管理');
   const [accidents, setAccidents] = useState<Accident[]>([]);
-  useEffect(() => {
-    void requireSupabase()
+  const [showImport, setShowImport] = useState(false);
+  const load = async () => {
+    const { data } = await requireSupabase()
       .from('accidents')
       .select('*')
-      .order('occurred_on', { ascending: false })
-      .then(({ data }) => setAccidents((data ?? []) as Accident[]));
+      .order('occurred_on', { ascending: false });
+    setAccidents((data ?? []) as Accident[]);
+  };
+  useEffect(() => {
+    void load();
   }, []);
   return (
     <>
@@ -104,10 +288,16 @@ export function AdminAccidentsListPage() {
           <p className="kicker">事故事例</p>
           <h1>事故事例を管理</h1>
         </div>
-        <Link className="button" to="/admin/accidents/new">
-          事故事例を作成
-        </Link>
+        <div className="button-row">
+          <button className="button-secondary" onClick={() => setShowImport((visible) => !visible)}>
+            CSV で取り込む
+          </button>
+          <Link className="button" to="/admin/accidents/new">
+            事故事例を作成
+          </Link>
+        </div>
       </div>
+      {showImport && <AccidentCsvImport onImported={load} />}
       <div className="admin-list">
         {accidents.map((accident) => (
           <Link className="panel news-row" to={'/admin/accidents/' + accident.id} key={accident.id}>
