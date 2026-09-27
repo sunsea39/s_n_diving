@@ -139,13 +139,20 @@ export interface NewsItem {
 
 export interface NotificationEvent {
   id: number;
-  kind: 'news' | 'accident';
+  kind: 'news' | 'accident' | 'accident_batch';
   ref_id: string;
   audience: 'members';
   title: string;
   body: string;
   url: string;
   created_at: string;
+}
+
+export interface ContentRead {
+  user_id: string;
+  kind: 'news' | 'accident' | 'accident_batch';
+  ref_id: string;
+  read_at: string;
 }
 
 export interface HiyariFields {

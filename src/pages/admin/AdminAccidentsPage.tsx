@@ -277,6 +277,7 @@ export function AdminAccidentsListPage() {
   const { refreshPublic } = useAppData();
   const { message: toast, showToast } = useToast();
   const [accidents, setAccidents] = useState<Accident[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showImport, setShowImport] = useState(false);
   const load = async () => {
     const { data } = await requireSupabase()
@@ -301,9 +302,48 @@ export function AdminAccidentsListPage() {
       return;
     }
     setAccidents((items) => items.filter((item) => item.id !== target.id));
+    setSelectedIds((ids) => {
+      const next = new Set(ids);
+      next.delete(target.id);
+      return next;
+    });
     await refreshPublic();
     showToast('事故事例を削除しました。');
   };
+  const toggleSelected = (id: string) => {
+    setSelectedIds((ids) => {
+      const next = new Set(ids);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const toggleAll = () => {
+    setSelectedIds((ids) =>
+      ids.size === accidents.length ? new Set() : new Set(accidents.map((accident) => accident.id))
+    );
+  };
+  const setStatus = async (status: Accident['status']) => {
+    const result = await requireSupabase().rpc('set_accidents_status', {
+      p_ids: [...selectedIds],
+      p_status: status
+    });
+    if (result.error) {
+      showToast(result.error.message || '公開状態を変更できませんでした。');
+      return;
+    }
+    setAccidents((items) =>
+      items.map((item) => (selectedIds.has(item.id) ? { ...item, status } : item))
+    );
+    setSelectedIds(new Set());
+    await refreshPublic();
+    showToast(
+      status === 'published'
+        ? '選択した事故事例を公開しました。'
+        : '選択した事故事例を下書きにしました。'
+    );
+  };
+  const allVisibleSelected = accidents.length > 0 && selectedIds.size === accidents.length;
   return (
     <>
       <div className="section-heading">
@@ -321,9 +361,20 @@ export function AdminAccidentsListPage() {
         </div>
       </div>
       {showImport && <AccidentCsvImport onImported={load} />}
+      <label className="admin-select-all">
+        <input type="checkbox" checked={allVisibleSelected} onChange={toggleAll} />
+        表示中の {accidents.length} 件をすべて選択
+      </label>
       <div className="admin-list">
         {accidents.map((accident) => (
           <article className="panel admin-list-row" key={accident.id}>
+            <label className="admin-row-select" aria-label={`${accident.title}を選択`}>
+              <input
+                type="checkbox"
+                checked={selectedIds.has(accident.id)}
+                onChange={() => toggleSelected(accident.id)}
+              />
+            </label>
             <Link className="news-row" to={'/admin/accidents/' + accident.id}>
               <span className="meta">
                 {accident.status === 'published' ? '公開中' : '下書き'} ・{' '}
@@ -342,6 +393,28 @@ export function AdminAccidentsListPage() {
           </article>
         ))}
       </div>
+      {selectedIds.size > 0 && (
+        <aside className="bulk-action-bar" aria-label="一括操作">
+          <b>{selectedIds.size} 件を選択中</b>
+          <div className="button-row">
+            <ConfirmButton
+              className="button"
+              label="公開する"
+              message={`選択した ${selectedIds.size} 件を公開しますか？2件以上を新規公開すると、通知は1件にまとめて送られます。`}
+              onConfirm={() => setStatus('published')}
+            />
+            <ConfirmButton
+              className="button-secondary"
+              label="下書きにする"
+              message={`選択した ${selectedIds.size} 件を下書きに戻しますか？`}
+              onConfirm={() => setStatus('draft')}
+            />
+            <button className="button-secondary" onClick={() => setSelectedIds(new Set())}>
+              選択解除
+            </button>
+          </div>
+        </aside>
+      )}
       <Toast message={toast} />
     </>
   );

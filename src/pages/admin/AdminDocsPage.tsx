@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ConfirmButton } from '../../components/ConfirmButton';
 import { DocContent } from '../../components/DocContent';
@@ -19,7 +19,22 @@ import { requireSupabase } from '../../lib/supabase';
 import { useToast } from '../../lib/toast';
 import type { Block, DivingDoc, DocBody, EquipmentSection, Sign } from '../../types';
 
-const icons = ['', 'regulator', 'hose', 'bcd', 'computer', 'mask', 'fin', 'wetsuit', 'tank'];
+const icons = [
+  { value: '', label: 'なし' },
+  { value: 'regulator', label: 'レギュレーター' },
+  { value: 'hose', label: 'ホース' },
+  { value: 'bcd', label: 'BCD' },
+  { value: 'computer', label: 'ダイブコンピューター' },
+  { value: 'mask', label: 'マスク' },
+  { value: 'fin', label: 'フィン' },
+  { value: 'wetsuit', label: 'ウェットスーツ' },
+  { value: 'tank', label: 'タンク' },
+  { value: 'note', label: 'ノート' },
+  { value: 'first-aid', label: '救急箱' },
+  { value: 'camera', label: 'カメラ' },
+  { value: 'caution', label: '注意' },
+  { value: 'fish', label: '魚' }
+];
 const makeSection = (no: number): EquipmentSection => ({
   no,
   name: '',
@@ -61,14 +76,29 @@ const blankDoc = (blocks: Block[] = []): DivingDoc => ({
 });
 
 function IconSelect({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const groupId = useId();
   return (
-    <select value={value} onChange={(event) => onChange(event.target.value)}>
+    <div className="icon-picker" role="radiogroup" aria-label="一覧用アイコン">
       {icons.map((icon) => (
-        <option value={icon} key={icon}>
-          {icon || 'アイコンなし（テキストのみ）'}
-        </option>
+        <label className={value === icon.value ? 'selected' : ''} key={icon.value || 'none'}>
+          <input
+            type="radio"
+            name={`doc-icon-${groupId}`}
+            checked={value === icon.value}
+            value={icon.value}
+            onChange={() => onChange(icon.value)}
+          />
+          {icon.value ? (
+            <img src={`${import.meta.env.BASE_URL}img/${icon.value}.png`} alt="" />
+          ) : (
+            <span className="icon-picker-none" aria-hidden="true">
+              ×
+            </span>
+          )}
+          <span>{icon.label}</span>
+        </label>
       ))}
-    </select>
+    </div>
   );
 }
 function Controls<T>({

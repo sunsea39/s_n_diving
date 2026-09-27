@@ -1,14 +1,21 @@
+import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAppData } from '../context/AppDataContext';
 import { usePageTitle } from '../lib/pageTitle';
 import { PlainText } from '../lib/text';
 import { NotFoundPage } from './NotFoundPage';
+import { markContentRead } from '../lib/contentReads';
 
 export function NewsDetailPage() {
   const { id } = useParams();
-  const { news } = useAppData();
+  const { news, user, refreshContentReads } = useAppData();
   const item = news.find((entry) => entry.id === id);
   usePageTitle(item?.title ?? 'お知らせ');
+
+  useEffect(() => {
+    if (!item || !user) return;
+    void markContentRead('news', item.id).then(refreshContentReads);
+  }, [item, refreshContentReads, user]);
 
   if (!item) return <NotFoundPage />;
 

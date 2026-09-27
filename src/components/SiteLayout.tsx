@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAppData } from '../context/AppDataContext';
+import { unreadNotificationEvents } from '../lib/contentReads';
 import { clampNotificationPanelRight } from '../lib/notificationPanel';
 import { requireSupabase, supabase } from '../lib/supabase';
 import type { NotificationEvent } from '../types';
@@ -31,6 +32,9 @@ function NotificationEventRow({
 }) {
   const content = (
     <>
+      <span className="notification-event-label">
+        {event.kind === 'news' ? '【お知らせ】' : '【事故事例】'}
+      </span>
       <strong>{available ? event.title : 'このお知らせは削除されました'}</strong>
       {available && event.body && <span>{event.body}</span>}
       <time dateTime={event.created_at}>
@@ -54,7 +58,7 @@ function NotificationBell({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const { user, profile, refreshSession, news, accidents } = useAppData();
+  const { user, profile, contentReads, refreshContentReads, news, accidents } = useAppData();
   const location = useLocation();
   const [events, setEvents] = useState<NotificationEvent[]>([]);
   const [availableEventIds, setAvailableEventIds] = useState<Set<number> | null>(null);
@@ -71,7 +75,7 @@ function NotificationBell({
       .from('notification_events')
       .select('*')
       .order('created_at', { ascending: false })
-      .limit(20)
+      .limit(100)
       .then(({ data }) => setEvents((data as NotificationEvent[] | null) ?? []));
   }, [profile, user]);
   useEffect(() => {
@@ -99,7 +103,11 @@ function NotificationBell({
         setAvailableEventIds(
           new Set(
             events
-              .filter((event) => availableRefs.has(`${event.kind}:${event.ref_id}`))
+              .filter(
+                (event) =>
+                  event.kind === 'accident_batch' ||
+                  availableRefs.has(`${event.kind}:${event.ref_id}`)
+              )
               .map((event) => event.id)
           )
         );
@@ -164,29 +172,35 @@ function NotificationBell({
     };
   }, [open]);
   if (!user || !profile) return null;
-  const unread = events.filter((event) => event.created_at > profile.notifications_seen_at).length;
-  const markSeen = () => {
-    onOpenChange(!open);
-    if (open || unread === 0) return;
-    const seenAt = new Date().toISOString();
-    void requireSupabase()
-      .from('profiles')
-      .update({ notifications_seen_at: seenAt })
-      .eq('id', user.id)
-      .then(() => refreshSession());
+  const unreadEvents = unreadNotificationEvents(
+    events,
+    contentReads,
+    profile.notifications_seen_at
+  );
+  const markAllRead = async () => {
+    const client = requireSupabase();
+    await client.from('content_reads').upsert(
+      unreadEvents.map((event) => ({ user_id: user.id, kind: event.kind, ref_id: event.ref_id })),
+      { onConflict: 'user_id,kind,ref_id', ignoreDuplicates: true }
+    );
+    await refreshContentReads();
   };
   return (
     <div className="notification-menu">
       <button
         ref={bell}
         className="notification-bell"
-        onClick={markSeen}
+        onClick={() => onOpenChange(!open)}
         aria-expanded={open}
         aria-label="お知らせ"
         aria-controls="notification-panel"
       >
         <BellIcon />
-        {unread > 0 && <span className="notification-badge">{unread > 9 ? '9+' : unread}</span>}
+        {unreadEvents.length > 0 && (
+          <span className="notification-badge">
+            {unreadEvents.length > 9 ? '9+' : unreadEvents.length}
+          </span>
+        )}
       </button>
       {open && (
         <section
@@ -202,18 +216,25 @@ function NotificationBell({
         >
           <div className="notification-panel-heading">
             <b>お知らせ</b>
-            <button
-              className="notification-panel-close"
-              onClick={() => closePanel(true)}
-              aria-label="お知らせを閉じる"
-            >
-              <CloseIcon />
-            </button>
+            <div className="notification-panel-actions">
+              {unreadEvents.length > 0 && (
+                <button className="notification-mark-all" onClick={() => void markAllRead()}>
+                  すべて既読にする
+                </button>
+              )}
+              <button
+                className="notification-panel-close"
+                onClick={() => closePanel(true)}
+                aria-label="お知らせを閉じる"
+              >
+                <CloseIcon />
+              </button>
+            </div>
           </div>
-          {events.length === 0 ? (
+          {unreadEvents.length === 0 ? (
             <p>新しいお知らせはありません。</p>
           ) : (
-            events.map((event) => (
+            unreadEvents.map((event) => (
               <NotificationEventRow
                 available={availableEventIds?.has(event.id) ?? true}
                 event={event}

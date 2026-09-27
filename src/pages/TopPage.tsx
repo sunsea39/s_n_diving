@@ -4,6 +4,7 @@ import { DocCard } from '../components/DocContent';
 import { HeroScene } from '../components/HeroScene';
 import { ThreadRow } from '../components/ThreadRow';
 import { useAppData } from '../context/AppDataContext';
+import { isContentRead } from '../lib/contentReads';
 import { formatNextDive, relativeDate, selectHomeDocs, selectNextDive } from '../lib/logic';
 import { requireSupabase } from '../lib/supabase';
 import { usePageTitle } from '../lib/pageTitle';
@@ -54,7 +55,7 @@ function RecentThreads() {
 
 export function TopPage() {
   usePageTitle('ホーム');
-  const { docs, news, accidents, isBoardMember, loading, user } = useAppData();
+  const { docs, news, accidents, contentReads, isBoardMember, loading, user } = useAppData();
   const text = usePageText('home');
   const nextDive = selectNextDive(news);
   const homeDocs = selectHomeDocs(docs);
@@ -182,7 +183,12 @@ export function TopPage() {
           </div>
           <div className="accident-list compact">
             {accidents.slice(0, 2).map((accident) => (
-              <AccidentCard accident={accident} key={accident.id} />
+              <AccidentCard
+                accident={accident}
+                isRead={isContentRead(contentReads, 'accident', accident.id)}
+                key={accident.id}
+                showReadStatus={Boolean(user)}
+              />
             ))}
           </div>
         </section>

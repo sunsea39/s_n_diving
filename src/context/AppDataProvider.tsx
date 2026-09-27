@@ -2,7 +2,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import seedDocument from '../../supabase/seed/gear-signs.json';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
-import type { Accident, AccountRole, DivingDoc, NewsItem, PageText, Profile } from '../types';
+import type {
+  Accident,
+  AccountRole,
+  ContentRead,
+  DivingDoc,
+  NewsItem,
+  PageText,
+  Profile
+} from '../types';
 import { AppDataContext } from './AppDataContext';
 
 const fallbackDocs = [seedDocument as DivingDoc];
@@ -18,6 +26,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [contentReads, setContentReads] = useState<ContentRead[]>([]);
   const [role, setRole] = useState<AccountRole | null>(null);
   const [isBoardMember, setIsBoardMember] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -73,6 +82,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
 
     if (!currentUser) {
       setProfile(null);
+      setContentReads([]);
       setRole(null);
       setIsBoardMember(false);
       setIsAdmin(false);
@@ -99,6 +109,15 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     setAuthChecked(true);
   }, []);
 
+  const refreshContentReads = useCallback(async () => {
+    if (!supabase) return;
+    const { data } = await supabase
+      .from('content_reads')
+      .select('*')
+      .order('read_at', { ascending: false });
+    setContentReads((data as ContentRead[] | null) ?? []);
+  }, []);
+
   useEffect(() => {
     void refreshPublic();
     void refreshSession();
@@ -111,6 +130,12 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     return () => data.subscription.unsubscribe();
   }, [refreshPublic, refreshSession]);
 
+  useEffect(() => {
+    if (!user) return;
+    setContentReads([]);
+    void refreshContentReads();
+  }, [refreshContentReads, user]);
+
   const value = useMemo(
     () => ({
       configured: isSupabaseConfigured,
@@ -122,6 +147,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       pageTexts,
       user,
       profile,
+      contentReads,
       role,
       isBoardMember,
       isAdmin,
@@ -129,7 +155,8 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       isOwner,
       authChecked,
       refreshPublic,
-      refreshSession
+      refreshSession,
+      refreshContentReads
     }),
     [
       authChecked,
@@ -142,10 +169,12 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       loading,
       news,
       profile,
+      contentReads,
       pageTexts,
       accidents,
       refreshPublic,
       refreshSession,
+      refreshContentReads,
       role,
       user
     ]

@@ -1,14 +1,20 @@
+import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAppData } from '../context/AppDataContext';
 import { accidentOutcomeMeta } from '../lib/logic';
 import { usePageTitle } from '../lib/pageTitle';
 import { NotFoundPage } from './NotFoundPage';
+import { markContentRead } from '../lib/contentReads';
 
 export function AccidentDetailPage() {
   const { slug } = useParams();
-  const { accidents, docs } = useAppData();
+  const { accidents, docs, user, refreshContentReads } = useAppData();
   const accident = accidents.find((item) => item.slug === slug);
   usePageTitle(accident?.title ?? '事故事例');
+  useEffect(() => {
+    if (!accident || !user) return;
+    void markContentRead('accident', accident.id).then(refreshContentReads);
+  }, [accident, refreshContentReads, user]);
   if (!accident) return <NotFoundPage />;
   const outcome = accidentOutcomeMeta(accident.outcome);
   const related = docs.filter((doc) => accident.related_doc_slugs.includes(doc.slug));

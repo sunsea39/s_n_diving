@@ -1,5 +1,11 @@
 # N×S_Diving
 
+## v2.9 migration
+
+Apply `supabase/migrations/20261002000000_v2_9.sql` after v2.8. It is additive and re-runnable. It adds per-user `content_reads`, batch accident-publication notifications, the owner-only `set_accidents_status` RPC, and the five additional document icons.
+
+The migration preserves `profiles.notifications_seen_at` only as the notification baseline; it does not migrate old read state. Existing unread events before that timestamp stay treated as read. Apply it through the Supabase SQL Editor or the project migration workflow, then refresh browser sessions so the new table and RPC grants are available.
+
 ## v2.8 migration
 
 Apply `supabase/migrations/20261001000000_v2_8.sql` after v2.4. It is additive and re-runnable. It adds `docs.home_featured` and an advisory-lock-protected database trigger that limits home-featured documents to four. No additional grants or policies are required.
@@ -31,7 +37,7 @@ Owners can import accident examples at `/admin/accidents` with **CSV で取り�
 ## 初回セットアップ
 
 1. 専用 GitHub アカウントで `s_n_diving` リポジトリを作成して push し、Pages の Source を「GitHub Actions」に設定します。
-2. Supabase プロジェクトを作成します。SQL Editor で migration をファイル名順に実行します（`20260924000000_phase1.sql`、`20260926000000_accidents_and_blocks.sql`、`20260927000000_accounts.sql`、`20260927010000_security_fix.sql`、`20260928000000_v2_2.sql`、`20260929000000_v2_3.sql`）。最後に `supabase/seed.sql` を実行します。migration は既存 DB への追加・再実行に対応しています。`node scripts/generate-seed.mjs` で JSON から seed SQL を再生成できます。
+2. Supabase プロジェクトを作成します。SQL Editor で migration をファイル名順に実行します（v2.4、v2.8、v2.9 を含む `supabase/migrations/` の全ファイル）。最後に `supabase/seed.sql` を実行します。migration は既存 DB への追加・再実行に対応しています。`node scripts/generate-seed.mjs` で JSON から seed SQL を再生成できます。
 3. Authentication → Providers → Email で **Confirm email を OFF** にし、Authentication → Providers で **Anonymous sign-ins を OFF** にします。
 4. ダイビング入門の資料を登録する場合は、ローカルの `private/manual/manual-seed.sql` を SQL Editor で実行します。この資料本文は公開リポジトリには含めません。
 5. 最初の管理者は既存の `admins` 行から migration が owner に移行します。新規サイトでは最初の登録後、SQL Editor で対象の `profiles.role` を `owner` に設定してください。以後の承認・権限変更は `/admin/members` で行います。権限の正本は `profiles.role` です。
